@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OWASP Contributor Certificate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+</head>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen p-4">
+
+    <!-- حالت لودینگ -->
+    <div id="loading" class="text-xl animate-pulse text-blue-400">Checking Digital Signature...</div>
+
+    <!-- بدنه اصلی مدرک (مخفی تا زمان تایید) -->
+    <div id="cert-display" class="hidden bg-white text-gray-900 p-8 md:p-16 rounded-xl shadow-2xl border-[12px] border-blue-900 text-center max-w-3xl w-full relative overflow-hidden">
+        
+        <!-- واتر مارک پس زمینه -->
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-100 text-9xl font-black opacity-40 pointer-events-none z-0">
+            OWASP
+        </div>
+
+        <div class="relative z-10">
+            <h1 class="text-4xl md:text-5xl font-black mb-2 text-gray-800">Certificate of Recognition</h1>
+            <p class="text-lg md:text-xl text-gray-600 mb-8">This digital credential validates the contributions of</p>
+            
+            <h2 id="user-name" class="text-5xl md:text-6xl font-serif text-blue-700 my-6 border-b-2 border-gray-300 pb-4 inline-block px-10">
+                User
+            </h2>
+            
+            <p class="text-lg text-gray-700 mt-4 px-4">
+                Has been officially recognized as a vital contributor to the <br>
+                <strong>Open Web Application Security Project (OWASP)</strong>.
+            </p>
+
+            <div class="mt-12 bg-gray-50 border border-gray-200 p-6 rounded-lg shadow-inner">
+                <p class="text-sm text-gray-500 uppercase tracking-widest mb-1">Achievement Tier</p>
+                <p id="tier-text" class="text-3xl font-bold text-yellow-600 uppercase"></p>
+            </div>
+            
+            <p class="text-xs text-gray-400 mt-8">Cryptographically Verified by OWASP Recognition Engine</p>
+        </div>
+    </div>
+
+    <!-- پیام خطا -->
+    <div id="error-display" class="hidden bg-red-900/50 border border-red-500 text-red-200 p-8 rounded-xl max-w-xl text-center shadow-lg">
+        <h3 class="text-3xl font-bold mb-4">❌ Invalid Credential</h3>
+        <p>This certificate signature is invalid or the data has been tampered with. Verification failed.</p>
+    </div>
+
+    <script>
+        // کلید امنیتی (برای تست MVP این کلید را هاردکد می‌کنیم)
+        const SECRET_KEY = "owasp_secret_123"; 
+        
+        // استخراج داده‌ها از URL
+        const params = new URLSearchParams(window.location.search);
+        const user = params.get('user');
+        const tier = params.get('tier');
+        const sig = params.get('sig');
+
+        setTimeout(() => {
+            document.getElementById('loading').style.display = 'none';
+
+            if (user && tier && sig) {
+                // تولید مجدد امضا با داده‌های URL
+                const data = user + tier;
+                const expectedSig = CryptoJS.HmacSHA256(data, SECRET_KEY).toString();
+
+                // مقایسه امضای تولید شده با امضای داخل URL
+                if (sig === expectedSig) {
+                    // اگر درست بود، مدرک را نشان بده
+                    document.getElementById('cert-display').classList.remove('hidden');
+                    document.getElementById('user-name').innerText = user;
+                    
+                    const tierElement = document.getElementById('tier-text');
+                    tierElement.innerText = tier;
+                    // تغییر رنگ بر اساس Tier
+                    if(tier.toLowerCase() === 'gold') tierElement.className = "text-3xl font-bold text-yellow-500 uppercase";
+                    if(tier.toLowerCase() === 'silver') tierElement.className = "text-3xl font-bold text-gray-400 uppercase";
+                } else {
+                    // اگر دستکاری شده بود، خطا بده
+                    document.getElementById('error-display').classList.remove('hidden');
+                }
+            } else {
+                document.getElementById('error-display').classList.remove('hidden');
+                document.getElementById('error-display').innerHTML = "<h3 class='text-2xl font-bold'>⚠️ No Data Found</h3><p>Please provide a valid certificate link.</p>";
+            }
+        }, 800); // یک تاخیر کوچک برای حس واقعی بودن اعتبارسنجی
+    </script>
+</body>
+</html>
