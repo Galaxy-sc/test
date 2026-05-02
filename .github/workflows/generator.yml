@@ -7,11 +7,15 @@ on:
 jobs:
   build-cert:
     runs-on: ubuntu-latest
-    # این پرمیشن برای کامنت گذاشتن ربات الزامی است
     permissions:
       issues: write
     
     steps:
+      # --- این بخش اضافه شد تا ربات ریپازیتوری را بشناسد ---
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      # -----------------------------------------------------
+
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
@@ -24,7 +28,6 @@ jobs:
         id: generate
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
-          # اینجا یوزرنیم کسی که Issue را باز کرده می‌گیریم (امنیت ۱۰۰٪)
           USER_INPUT: ${{ github.actor }} 
           REPO_OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
@@ -34,7 +37,6 @@ jobs:
           user = os.environ['USER_INPUT']
           private_key = os.environ['PRIVATE_KEY']
           
-          # فقط issue هایی که عنوانشون Cert Request هست رو پردازش کن
           issue_title = "${{ github.event.issue.title }}"
           if "Cert Request" not in issue_title:
               sys.exit(0)
@@ -65,7 +67,6 @@ jobs:
           
           final_url = f"https://{os.environ['REPO_OWNER']}.github.io/{os.environ['REPO_NAME']}/?token={safe_token}"
           
-          # انتقال لینک به مرحله بعد برای کامنت گذاشتن
           with open(os.environ['GITHUB_ENV'], 'a') as f:
               f.write(f"CERT_URL={final_url}\n")
               f.write(f"TIER={tier}\n")
