@@ -1,25 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>OWASP Secure Certificate</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- اضافه کردن کتابخانه استاندارد برای بررسی امضای نامتقارن -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.9.0/jsrsasign-all-min.js"></script>
-</head>
-<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen">
-
-    <div id="cert-display" class="hidden bg-white text-gray-900 p-10 rounded-lg border-[10px] border-blue-900 text-center max-w-2xl w-full">
-        <h1 class="text-4xl font-black mb-6">OWASP Certificate</h1>
-        <h2 id="user-name" class="text-5xl font-serif text-blue-800 my-4">User</h2>
-        <p class="text-lg mb-6">Has successfully contributed to OWASP.</p>
-        <p id="tier-text" class="text-3xl font-bold uppercase"></p>
-    </div>
-
-    <div id="error-display" class="hidden text-red-500 text-xl font-bold mt-4"></div>
-
-    <script>
-        // کلید عمومی خودت را دقیقاً با حفظ فرمت و فاصله‌ها اینجا پیست کن
+<script>
+        // کلید عمومی شما در اینجا قرار دارد...
         const PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoEQfLkoDz9yg0jXxDfBu
 GXqskmCW3/ag6n8PxqDoHr6kvwjMR/sSl5/lOQEkFizEfCZSlwRQayuEyuSODKCg
@@ -31,42 +11,45 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
 -----END PUBLIC KEY-----`;
 
         const params = new URLSearchParams(window.location.search);
-        const token = params.get('token');
+        let token = params.get('token'); // از let استفاده کردیم تا بتونیم تغییرش بدیم
 
-        if (token) {
-            try {
-                // بررسی صحت امضا توسط کلید عمومی (امضای RS256)
-                const isValid = KJUR.jws.JWS.verifyJWT(token, PUBLIC_KEY, {alg: ['RS256']});
+        setTimeout(() => {
+            document.getElementById('loading').style.display = 'none';
+
+            if (token) {
+                // دی‌کد کردن توکن (تبدیل ~ به . برای رفع Obfuscation)
+                token = token.replace(/~/g, '.');
                 
-                if (isValid) {
-                    // رمزگشایی اطلاعات داخل توکن
-                    const base64Url = token.split('.')[1];
-                    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                    const payload = JSON.parse(decodeURIComponent(window.atob(base64).split('').map(function(c) {
-                        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                    }).join('')));
-
-                    document.getElementById('cert-display').classList.remove('hidden');
-                    document.getElementById('user-name').innerText = payload.user;
+                try {
+                    const isValid = KJUR.jws.JWS.verifyJWT(token, PUBLIC_KEY, {alg: ['RS256']});
                     
-                    const tierEl = document.getElementById('tier-text');
-                    tierEl.innerText = payload.tier + " TIER";
-                    tierEl.className = payload.tier === "Gold" ? "text-yellow-600 font-bold text-3xl" : "text-gray-500 font-bold text-3xl";
-                } else {
-                    showError("❌ امضا نامعتبر است! این مدرک جعل شده است.");
+                    if (isValid) {
+                        const base64Url = token.split('.')[1];
+                        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                        const payload = JSON.parse(decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                        }).join('')));
+
+                        document.getElementById('cert-display').classList.remove('hidden');
+                        document.getElementById('user-name').innerText = payload.user;
+                        
+                        const tierEl = document.getElementById('tier-text');
+                        tierEl.innerText = payload.tier + " TIER";
+                        tierEl.className = payload.tier === "Gold" ? "text-yellow-600 font-bold text-3xl" : "text-gray-500 font-bold text-3xl";
+                    } else {
+                        showError("❌ امضا نامعتبر است! این مدرک جعل شده است.");
+                    }
+                } catch (e) {
+                    showError("❌ ساختار لینک دستکاری شده است.");
                 }
-            } catch (e) {
-                showError("❌ ساختار لینک دستکاری شده است.");
+            } else {
+                showError("⚠️ لطفا لینک معتبر را وارد کنید.");
             }
-        } else {
-            showError("⚠️ لطفا لینک معتبر را وارد کنید.");
-        }
+        }, 800);
 
         function showError(msg) {
             const err = document.getElementById('error-display');
-            err.innerText = msg;
+            err.innerHTML = `<h3 class='text-2xl font-bold'>${msg}</h3>`;
             err.classList.remove('hidden');
         }
     </script>
-</body>
-</html>
