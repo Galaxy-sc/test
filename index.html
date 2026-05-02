@@ -4,20 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OWASP Contributor Certificate</title>
-    <!-- اضافه کردن Tailwind CSS برای استایل‌دهی -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- اضافه کردن کتابخانه رمزنگاری برای بررسی امضای نامتقارن -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.9.0/jsrsasign-all-min.js"></script>
 </head>
 <body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen p-4">
 
-    <!-- حالت لودینگ -->
     <div id="loading" class="text-xl animate-pulse text-blue-400 font-semibold">Verifying Digital Credential...</div>
 
-    <!-- بخش 1: بدنه اصلی مدرک (مخفی تا زمان تایید امضا) -->
+    <!-- بدنه اصلی مدرک -->
     <div id="cert-display" class="hidden bg-white text-gray-900 p-8 md:p-16 rounded-xl shadow-2xl border-[12px] border-blue-900 text-center max-w-3xl w-full relative overflow-hidden">
-        
-        <!-- واتر مارک پس زمینه -->
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-100 text-9xl font-black opacity-40 pointer-events-none z-0">
             OWASP
         </div>
@@ -26,9 +21,9 @@
             <h1 class="text-4xl md:text-5xl font-black mb-2 text-gray-800">Certificate of Recognition</h1>
             <p class="text-lg md:text-xl text-gray-600 mb-8">This digital credential validates the contributions of</p>
             
-            <h2 id="user-name" class="text-5xl md:text-6xl font-serif text-blue-700 my-6 border-b-2 border-gray-300 pb-4 inline-block px-10">
-                User
-            </h2>
+            <!-- نمایش نام واقعی و یوزرنیم با هم -->
+            <h2 id="real-name" class="text-5xl md:text-6xl font-serif text-blue-700 mt-6 mb-2 inline-block px-10">Name</h2>
+            <p id="user-name" class="text-xl text-gray-500 font-mono mb-6 border-b-2 border-gray-300 pb-4">@username</p>
             
             <p class="text-lg text-gray-700 mt-4 px-4">
                 Has been officially recognized as a vital contributor to the <br>
@@ -37,31 +32,33 @@
 
             <div class="mt-12 bg-gray-50 border border-gray-200 p-6 rounded-lg shadow-inner">
                 <p class="text-sm text-gray-500 uppercase tracking-widest mb-1">Achievement Tier</p>
-                <p id="tier-text" class="text-3xl font-bold text-yellow-600 uppercase"></p>
+                <p id="tier-text" class="text-3xl font-bold uppercase"></p>
             </div>
             
             <p class="text-xs text-gray-400 mt-8">Cryptographically Verified by OWASP Recognition Engine</p>
         </div>
     </div>
 
-    <!-- بخش 2: دکمه درخواست مدرک (نمایش در صورت نبود توکن در URL) -->
+    <!-- بخش درخواست مدرک با ورودی نام -->
     <div id="request-section" class="hidden bg-gray-800 p-10 rounded-2xl border border-gray-700 shadow-2xl text-center max-w-lg w-full mt-10">
         <h2 class="text-3xl font-bold mb-4 text-white">آیا در OWASP مشارکت داشته‌اید؟</h2>
-        <p class="text-gray-400 mb-8 leading-relaxed">
-            سیستم ما به صورت خودکار فعالیت‌های شما را در گیت‌هاب بررسی می‌کند. 
-            با کلیک روی دکمه زیر، یک درخواست (Issue) باز کنید تا ربات ما در چند ثانیه مدرک امن شما را صادر کند.
+        <p class="text-gray-400 mb-6 leading-relaxed">
+            نام کامل خود را وارد کنید تا در مدرک درج شود. سپس برای دریافت مدرک کلیک کنید.
         </p>
-        <a id="issue-btn" href="#" target="_blank" class="inline-block bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-10 rounded-full transition duration-300 shadow-lg text-lg transform hover:scale-105">
-            🚀 درخواست صدور مدرک
-        </a>
-        <p class="text-xs text-gray-500 mt-6">نیازمند لاگین در حساب GitHub شماست.</p>
+        
+        <!-- اینپوت برای گرفتن نام واقعی -->
+        <input type="text" id="name-input" placeholder="مثال: Meysam Bal-afkan" class="w-full p-4 mb-6 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500 text-center text-lg">
+
+        <button onclick="generateIssueLink()" class="w-full inline-block bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-10 rounded-lg transition duration-300 shadow-lg text-lg">
+            🚀 ایجاد درخواست مدرک
+        </button>
+        <p class="text-xs text-gray-500 mt-4">در صورت اشتباه در نام، می‌توانید دوباره این مراحل را طی کنید.</p>
     </div>
 
-    <!-- پیام خطا -->
     <div id="error-display" class="hidden bg-red-900/50 border border-red-500 text-red-200 p-8 rounded-xl max-w-xl text-center shadow-lg mt-10"></div>
 
     <script>
-        // کلید عمومی استخراج شده از کلید خصوصی شما
+        // کلید عمومی شما
         const PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoEQfLkoDz9yg0jXxDfBu
 GXqskmCW3/ag6n8PxqDoHr6kvwjMR/sSl5/lOQEkFizEfCZSlwRQayuEyuSODKCg
@@ -72,7 +69,6 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
 8wIDAQAB
 -----END PUBLIC KEY-----`;
 
-        // تابع تبدیل کدهای هگزادسیمال به رشته توکن اصلی
         function hexToString(hex) {
             let str = '';
             for (let i = 0; i < hex.length; i += 2) {
@@ -81,71 +77,65 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
             return str;
         }
 
-        // تابع نمایش خطا در محیط کاربری
         function showError(msg) {
             const err = document.getElementById('error-display');
             err.innerHTML = `<h3 class='text-2xl font-bold'>${msg}</h3>`;
             err.classList.remove('hidden');
         }
 
-        // بررسی پارامترهای URL
+        // تابع ساخت لینک گیت هاب با توجه به نام وارد شده
+        function generateIssueLink() {
+            const fullName = document.getElementById('name-input').value.trim();
+            if (!fullName) {
+                alert("لطفاً نام خود را وارد کنید!");
+                return;
+            }
+
+            const repoOwner = "Galaxy-sc"; 
+            const repoName = "test"; 
+            
+            const issueTitle = encodeURIComponent("Cert Request: Generate My Certificate");
+            const issueBody = encodeURIComponent(`لطفا مدرک مشارکت من در پروژه‌های OWASP را صادر کنید.\n\nFullName: ${fullName}`);
+            
+            const issueUrl = `https://github.com/${repoOwner}/${repoName}/issues/new?title=${issueTitle}&body=${issueBody}`;
+            window.open(issueUrl, '_blank');
+        }
+
         const params = new URLSearchParams(window.location.search);
         const encodedToken = params.get('token');
 
-        // اجرای عملیات با کمی تاخیر برای نمایش لودینگ (تجربه کاربری بهتر)
         setTimeout(() => {
             document.getElementById('loading').style.display = 'none';
 
             if (encodedToken) {
-                // مسیر 1: توکن وجود دارد، پس مدرک را اعتبارسنجی و نمایش بده
                 try {
                     const token = hexToString(encodedToken);
                     const isValid = KJUR.jws.JWS.verifyJWT(token, PUBLIC_KEY, {alg: ['RS256']});
                     
                     if (isValid) {
-                        // دیکد کردن اطلاعات کاربر از داخل توکن
                         const base64Url = token.split('.')[1];
                         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
                         const payload = JSON.parse(decodeURIComponent(window.atob(base64).split('').map(function(c) {
                             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
                         }).join('')));
 
-                        // تزریق اطلاعات به صفحه و نمایش مدرک
                         document.getElementById('cert-display').classList.remove('hidden');
-                        document.getElementById('user-name').innerText = payload.user;
+                        
+                        // اینجا نام واقعی و یوزرنیم را در HTML جایگذاری می‌کنیم
+                        document.getElementById('real-name').innerText = payload.real_name || payload.user;
+                        document.getElementById('user-name').innerText = "@" + payload.user;
                         
                         const tierEl = document.getElementById('tier-text');
                         tierEl.innerText = payload.tier + " TIER";
-                        
-                        // تنظیم رنگ بر اساس سطح مدال
-                        if (payload.tier === "Gold") {
-                            tierEl.className = "text-yellow-600 font-extrabold text-4xl";
-                        } else {
-                            tierEl.className = "text-gray-500 font-extrabold text-4xl";
-                        }
+                        tierEl.className = payload.tier === "Gold" ? "text-yellow-600 font-extrabold text-4xl" : "text-gray-500 font-extrabold text-4xl";
                     } else {
                         showError("❌ امضا نامعتبر است! این مدرک جعل شده است.");
                     }
                 } catch (e) {
-                    showError("❌ ساختار لینک دستکاری شده است یا توکن مخدوش است.");
-                    console.error("Verification Error: ", e);
+                    showError("❌ ساختار لینک دستکاری شده است.");
                 }
             } else {
-                // مسیر 2: توکنی وجود ندارد، پس صفحه فرود (لندینگ) و دکمه درخواست را نمایش بده
                 document.getElementById('request-section').classList.remove('hidden');
-                
-                // --- تنظیمات ریپازیتوری شما ---
-                // اگر نام ریپازیتوری شما چیزی غیر از "test" است، خط زیر را تغییر دهید
-                const repoOwner = "Galaxy-sc"; 
-                const repoName = "test"; 
-                // ------------------------------
-                
-                // تولید لینک هوشمند برای باز کردن Issue از پیش پر شده
-                const issueTitle = encodeURIComponent("Cert Request: Generate My Certificate");
-                const issueBody = encodeURIComponent("لطفا مدرک مشارکت من در پروژه‌های OWASP را بررسی و صادر کنید.\n\n(با کلیک روی دکمه Submit این درخواست ثبت شده و ربات تا چند ثانیه دیگر لینک مدرک را همینجا ارسال می‌کند)");
-                
-                const issueUrl = `https://github.com/${repoOwner}/${repoName}/issues/new?title=${issueTitle}&body=${issueBody}`;
-                document.getElementById('issue-btn').href = issueUrl;
             }
         }, 800);
     </script>
