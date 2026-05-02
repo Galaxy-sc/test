@@ -4,6 +4,11 @@ on:
   issues:
     types: [opened]
 
+# این بخش جلوی اسپم همزمان توسط یک کاربر را می‌گیرد
+concurrency:
+  group: cert-request-${{ github.actor }}
+  cancel-in-progress: true
+
 jobs:
   build-cert:
     runs-on: ubuntu-latest
@@ -11,10 +16,8 @@ jobs:
       issues: write
     
     steps:
-      # --- این بخش اضافه شد تا ربات ریپازیتوری را بشناسد ---
       - name: Checkout Repository
         uses: actions/checkout@v4
-      # -----------------------------------------------------
 
       - name: Setup Python
         uses: actions/setup-python@v4
@@ -29,20 +32,33 @@ jobs:
         env:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           USER_INPUT: ${{ github.actor }} 
+          ISSUE_BODY: ${{ github.event.issue.body }}
           REPO_OWNER: ${{ github.repository_owner }}
           REPO_NAME: ${{ github.event.repository.name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          import urllib.request, json, os, sys, jwt
+          import urllib.request, json, os, sys, jwt, re
           
           user = os.environ['USER_INPUT']
           private_key = os.environ['PRIVATE_KEY']
+          gh_token = os.environ['GH_TOKEN']
+          issue_body = os.environ['ISSUE_BODY']
           
           issue_title = "${{ github.event.issue.title }}"
           if "Cert Request" not in issue_title:
               sys.exit(0)
               
+          # استخراج نام واقعی کاربر از داخل متن Issue با استفاده از Regex
+          name_match = re.search(r'FullName:\s*(.+)', issue_body)
+          real_name = name_match.group(1).strip() if name_match else user
+              
           url = f"https://api.github.com/search/issues?q=author:{user}+org:OWASP+type:pr+is:merged"
-          req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+          
+          headers = {
+              'User-Agent': 'Mozilla/5.0',
+              'Authorization': f'Bearer {gh_token}'
+          }
+          req = urllib.request.Request(url, headers=headers)
           
           try:
               with urllib.request.urlopen(req) as response:
@@ -59,7 +75,14 @@ jobs:
               sys.exit(1)
               
           tier = "Gold" if count >= 5 else "Silver"
-          payload = {"user": user, "tier": tier, "pr_count": count}
+          
+          # اضافه کردن نام واقعی به پی‌لود JWT
+          payload = {
+              "user": user, 
+              "real_name": real_name, 
+              "tier": tier, 
+              "pr_count": count
+          }
           
           token = jwt.encode(payload, private_key, algorithm="RS256")
           if isinstance(token, bytes): token = token.decode('utf-8')
@@ -71,6 +94,7 @@ jobs:
               f.write(f"CERT_URL={final_url}\n")
               f.write(f"TIER={tier}\n")
               f.write(f"COUNT={count}\n")
+              f.write(f"REAL_NAME={real_name}\n")
         shell: python
 
       - name: Comment Success & Close Issue
@@ -80,6 +104,7 @@ jobs:
           ISSUE: ${{ github.event.issue.number }}
         run: |
           gh issue comment $ISSUE --body "### 🎉 تبریک! مدرک شما آماده است.
+          **نام ثبت شده:** ${{ env.REAL_NAME }}
           **سطح:** ${{ env.TIER }} (${{ env.COUNT }} مشارکت)
           
           🔗 [**>> برای مشاهده و دریافت مدرک کلیک کنید <<**](${{ env.CERT_URL }})"
