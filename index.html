@@ -1,5 +1,51 @@
-<script>
-        // کلید عمومی شما در اینجا قرار دارد...
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OWASP Contributor Certificate</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.9.0/jsrsasign-all-min.js"></script>
+</head>
+<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen p-4">
+
+    <!-- حالت لودینگ -->
+    <div id="loading" class="text-xl animate-pulse text-blue-400">Verifying Digital Signature...</div>
+
+    <!-- بدنه اصلی مدرک -->
+    <div id="cert-display" class="hidden bg-white text-gray-900 p-8 md:p-16 rounded-xl shadow-2xl border-[12px] border-blue-900 text-center max-w-3xl w-full relative overflow-hidden">
+        
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-100 text-9xl font-black opacity-40 pointer-events-none z-0">
+            OWASP
+        </div>
+
+        <div class="relative z-10">
+            <h1 class="text-4xl md:text-5xl font-black mb-2 text-gray-800">Certificate of Recognition</h1>
+            <p class="text-lg md:text-xl text-gray-600 mb-8">This digital credential validates the contributions of</p>
+            
+            <h2 id="user-name" class="text-5xl md:text-6xl font-serif text-blue-700 my-6 border-b-2 border-gray-300 pb-4 inline-block px-10">
+                User
+            </h2>
+            
+            <p class="text-lg text-gray-700 mt-4 px-4">
+                Has been officially recognized as a vital contributor to the <br>
+                <strong>Open Web Application Security Project (OWASP)</strong>.
+            </p>
+
+            <div class="mt-12 bg-gray-50 border border-gray-200 p-6 rounded-lg shadow-inner">
+                <p class="text-sm text-gray-500 uppercase tracking-widest mb-1">Achievement Tier</p>
+                <p id="tier-text" class="text-3xl font-bold text-yellow-600 uppercase"></p>
+            </div>
+            
+            <p class="text-xs text-gray-400 mt-8">Cryptographically Verified by OWASP Recognition Engine</p>
+        </div>
+    </div>
+
+    <!-- پیام خطا -->
+    <div id="error-display" class="hidden bg-red-900/50 border border-red-500 text-red-200 p-8 rounded-xl max-w-xl text-center shadow-lg"></div>
+
+    <script>
+        // کلید عمومی شما
         const PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoEQfLkoDz9yg0jXxDfBu
 GXqskmCW3/ag6n8PxqDoHr6kvwjMR/sSl5/lOQEkFizEfCZSlwRQayuEyuSODKCg
@@ -10,17 +56,27 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
 8wIDAQAB
 -----END PUBLIC KEY-----`;
 
+        // تابع بازگرداندن هگزادسیمال به رشته اصلی توکن
+        function hexToString(hex) {
+            let str = '';
+            for (let i = 0; i < hex.length; i += 2) {
+                str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+            }
+            return str;
+        }
+
         const params = new URLSearchParams(window.location.search);
-        let token = params.get('token'); // از let استفاده کردیم تا بتونیم تغییرش بدیم
+        const encodedToken = params.get('token');
 
         setTimeout(() => {
             document.getElementById('loading').style.display = 'none';
 
-            if (token) {
-                // دی‌کد کردن توکن (تبدیل ~ به . برای رفع Obfuscation)
-                token = token.replace(/~/g, '.');
-                
+            if (encodedToken) {
                 try {
+                    // دیکد کردن توکن از هگز به JWT استاندارد
+                    const token = hexToString(encodedToken);
+                    
+                    // بررسی امضای دیجیتال
                     const isValid = KJUR.jws.JWS.verifyJWT(token, PUBLIC_KEY, {alg: ['RS256']});
                     
                     if (isValid) {
@@ -40,7 +96,8 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
                         showError("❌ امضا نامعتبر است! این مدرک جعل شده است.");
                     }
                 } catch (e) {
-                    showError("❌ ساختار لینک دستکاری شده است.");
+                    showError("❌ ساختار لینک دستکاری شده است یا توکن مخدوش است.");
+                    console.error(e);
                 }
             } else {
                 showError("⚠️ لطفا لینک معتبر را وارد کنید.");
@@ -53,3 +110,5 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
             err.classList.remove('hidden');
         }
     </script>
+</body>
+</html>
