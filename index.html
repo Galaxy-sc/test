@@ -11,7 +11,6 @@
 
     <div id="loading" class="text-xl animate-pulse text-blue-400 font-semibold">Verifying Digital Credential...</div>
 
-    <!-- بدنه اصلی مدرک -->
     <div id="cert-display" class="hidden bg-white text-gray-900 p-8 md:p-16 rounded-xl shadow-2xl border-[12px] border-blue-900 text-center max-w-3xl w-full relative overflow-hidden">
         <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-100 text-9xl font-black opacity-40 pointer-events-none z-0">
             OWASP
@@ -21,7 +20,6 @@
             <h1 class="text-4xl md:text-5xl font-black mb-2 text-gray-800">Certificate of Recognition</h1>
             <p class="text-lg md:text-xl text-gray-600 mb-8">This digital credential validates the contributions of</p>
             
-            <!-- نمایش نام واقعی و یوزرنیم با هم -->
             <h2 id="real-name" class="text-5xl md:text-6xl font-serif text-blue-700 mt-6 mb-2 inline-block px-10">Name</h2>
             <p id="user-name" class="text-xl text-gray-500 font-mono mb-6 border-b-2 border-gray-300 pb-4">@username</p>
             
@@ -39,14 +37,12 @@
         </div>
     </div>
 
-    <!-- بخش درخواست مدرک با ورودی نام -->
     <div id="request-section" class="hidden bg-gray-800 p-10 rounded-2xl border border-gray-700 shadow-2xl text-center max-w-lg w-full mt-10">
         <h2 class="text-3xl font-bold mb-4 text-white">آیا در OWASP مشارکت داشته‌اید؟</h2>
         <p class="text-gray-400 mb-6 leading-relaxed">
             نام کامل خود را وارد کنید تا در مدرک درج شود. سپس برای دریافت مدرک کلیک کنید.
         </p>
         
-        <!-- اینپوت برای گرفتن نام واقعی -->
         <input type="text" id="name-input" placeholder="مثال: Meysam Bal-afkan" class="w-full p-4 mb-6 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500 text-center text-lg">
 
         <button onclick="generateIssueLink()" class="w-full inline-block bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-10 rounded-lg transition duration-300 shadow-lg text-lg">
@@ -58,7 +54,6 @@
     <div id="error-display" class="hidden bg-red-900/50 border border-red-500 text-red-200 p-8 rounded-xl max-w-xl text-center shadow-lg mt-10"></div>
 
     <script>
-        // کلید عمومی شما
         const PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoEQfLkoDz9yg0jXxDfBu
 GXqskmCW3/ag6n8PxqDoHr6kvwjMR/sSl5/lOQEkFizEfCZSlwRQayuEyuSODKCg
@@ -69,21 +64,12 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
 8wIDAQAB
 -----END PUBLIC KEY-----`;
 
-        function hexToString(hex) {
-            let str = '';
-            for (let i = 0; i < hex.length; i += 2) {
-                str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
-            }
-            return str;
-        }
-
         function showError(msg) {
             const err = document.getElementById('error-display');
             err.innerHTML = `<h3 class='text-2xl font-bold'>${msg}</h3>`;
             err.classList.remove('hidden');
         }
 
-        // تابع ساخت لینک گیت هاب با توجه به نام وارد شده
         function generateIssueLink() {
             const fullName = document.getElementById('name-input').value.trim();
             if (!fullName) {
@@ -102,18 +88,23 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
         }
 
         const params = new URLSearchParams(window.location.search);
-        const encodedToken = params.get('token');
+        // استفاده از cert به جای token برای خواندن بخش امن
+        const safeToken = params.get('cert');
 
         setTimeout(() => {
             document.getElementById('loading').style.display = 'none';
 
-            if (encodedToken) {
+            if (safeToken) {
                 try {
-                    const token = hexToString(encodedToken);
-                    const isValid = KJUR.jws.JWS.verifyJWT(token, PUBLIC_KEY, {alg: ['RS256']});
+                    // بازسازی توکن با اتصال هدر ثابت الگوریتم RS256
+                    const staticHeader = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9";
+                    const fullToken = staticHeader + "." + safeToken;
+
+                    // بررسی صحت امضای توکن کامل
+                    const isValid = KJUR.jws.JWS.verifyJWT(fullToken, PUBLIC_KEY, {alg: ['RS256']});
                     
                     if (isValid) {
-                        const base64Url = token.split('.')[1];
+                        const base64Url = fullToken.split('.')[1];
                         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
                         const payload = JSON.parse(decodeURIComponent(window.atob(base64).split('').map(function(c) {
                             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
@@ -121,7 +112,6 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
 
                         document.getElementById('cert-display').classList.remove('hidden');
                         
-                        // اینجا نام واقعی و یوزرنیم را در HTML جایگذاری می‌کنیم
                         document.getElementById('real-name').innerText = payload.real_name || payload.user;
                         document.getElementById('user-name').innerText = "@" + payload.user;
                         
