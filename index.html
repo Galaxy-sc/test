@@ -6,6 +6,7 @@
     <title>OWASP Contributor Certificate</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.9.0/jsrsasign-all-min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen p-4">
 
@@ -33,7 +34,12 @@
                 <p id="tier-text" class="text-3xl font-bold uppercase"></p>
             </div>
             
-            <p class="text-xs text-gray-400 mt-8">Cryptographically Verified by OWASP Recognition Engine</p>
+            <div class="mt-8 flex flex-col items-center justify-center">
+                <div id="qrcode-container" class="p-2 bg-white rounded-lg shadow-md border border-gray-200"></div>
+                <p class="text-[10px] text-gray-400 mt-2 font-mono tracking-wide">Scan to Verify Authentic Credential</p>
+            </div>
+
+            <p class="text-xs text-gray-400 mt-6">Cryptographically Verified by OWASP Recognition Engine</p>
         </div>
     </div>
 
@@ -88,7 +94,6 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
         }
 
         const params = new URLSearchParams(window.location.search);
-        // استفاده از cert به جای token برای خواندن بخش امن
         const safeToken = params.get('cert');
 
         setTimeout(() => {
@@ -96,11 +101,9 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
 
             if (safeToken) {
                 try {
-                    // بازسازی توکن با اتصال هدر ثابت الگوریتم RS256
                     const staticHeader = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9";
                     const fullToken = staticHeader + "." + safeToken;
 
-                    // بررسی صحت امضای توکن کامل
                     const isValid = KJUR.jws.JWS.verifyJWT(fullToken, PUBLIC_KEY, {alg: ['RS256']});
                     
                     if (isValid) {
@@ -118,6 +121,18 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
                         const tierEl = document.getElementById('tier-text');
                         tierEl.innerText = payload.tier + " TIER";
                         tierEl.className = payload.tier === "Gold" ? "text-yellow-600 font-extrabold text-4xl" : "text-gray-500 font-extrabold text-4xl";
+
+                        // تولید QR Code با آدرس فعلی صفحه
+                        document.getElementById('qrcode-container').innerHTML = ""; 
+                        new QRCode(document.getElementById("qrcode-container"), {
+                            text: window.location.href, // قرار دادن لینک شامل توکن داخل بارکد
+                            width: 100,
+                            height: 100,
+                            colorDark : "#111827", // رنگ متناسب با استایل
+                            colorLight : "#ffffff",
+                            correctLevel : QRCode.CorrectLevel.L
+                        });
+
                     } else {
                         showError("❌ امضا نامعتبر است! این مدرک جعل شده است.");
                     }
