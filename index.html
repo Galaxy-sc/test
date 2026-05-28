@@ -7,6 +7,13 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.9.0/jsrsasign-all-min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <style>
+        #qrcode-container canvas, #qrcode-container img {
+            width: 100px !important;
+            height: 100px !important;
+        }
+    </style>
 </head>
 <body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen p-4">
 
@@ -122,13 +129,13 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
                         tierEl.innerText = payload.tier + " TIER";
                         tierEl.className = payload.tier === "Gold" ? "text-yellow-600 font-extrabold text-4xl" : "text-gray-500 font-extrabold text-4xl";
 
-                        // تولید QR Code با آدرس فعلی صفحه
+                        // تولید QR Code با سایز باطنی ۲۰۰ برای اسکن دقیق
                         document.getElementById('qrcode-container').innerHTML = ""; 
                         new QRCode(document.getElementById("qrcode-container"), {
-                            text: window.location.href, // قرار دادن لینک شامل توکن داخل بارکد
+                            text: window.location.href,
                             width: 200,
                             height: 200,
-                            colorDark : "#111827", // رنگ متناسب با استایل
+                            colorDark : "#111827",
                             colorLight : "#ffffff",
                             correctLevel : QRCode.CorrectLevel.L
                         });
