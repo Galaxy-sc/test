@@ -3,70 +3,648 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OWASP Contributor Certificate</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>OWASP OS | CRT Workspace</title>
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.9.0/jsrsasign-all-min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    
+
     <style>
-        #qrcode-container canvas, #qrcode-container img {
-            width: 100px !important;
-            height: 100px !important;
+        @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;500;700&family=Inter:wght@400;600&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body { background-color: #050608; color: #e2e8f0; height: 100vh; overflow: hidden; font-family: 'Inter', sans-serif; position: relative; }
+
+        /* --- Premium Animated Background --- */
+        .bg-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
+            background: #050608; overflow: hidden;
         }
+        .orb-1 {
+            position: absolute; top: -30%; left: -10%; width: 60vw; height: 60vw;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 60%);
+            border-radius: 50%; animation: floatOrb 12s infinite alternate ease-in-out;
+        }
+        .orb-2 {
+            position: absolute; bottom: -30%; right: -10%; width: 70vw; height: 70vw;
+            background: radial-gradient(circle, rgba(217, 70, 239, 0.08) 0%, transparent 60%);
+            border-radius: 50%; animation: floatOrb 15s infinite alternate-reverse ease-in-out;
+        }
+        .bg-noise {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;
+            background-image: url('data:image/svg+xml;utf8,%3Csvg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"%3E%3Cfilter id="noise"%3E%3CfeTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch"/%3E%3C/filter%3E%3Crect width="100%25" height="100%25" filter="url(%23noise)" opacity="0.03"/%3E%3C/svg%3E');
+            pointer-events: none;
+        }
+
+        @keyframes floatOrb {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(40px, 60px) scale(1.1); }
+        }
+
+        /* --- Taskbar --- */
+        .taskbar {
+            height: 32px; background: rgba(13, 15, 22, 0.7); backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(168, 85, 247, 0.2); display: flex;
+            justify-content: space-between; align-items: center; padding: 0 20px; font-size: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5); z-index: 9999; position: relative;
+        }
+        .taskbar span { font-weight: 600; letter-spacing: 1px; color: #a855f7; }
+        .clock { color: #d946ef !important; }
+
+        /* --- Desktop & SVG Icons --- */
+        #desktop { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
+        .icon-grid { display: flex; flex-direction: column; gap: 30px; padding: 30px; }
+        
+        .icon-wrapper { position: relative; width: 90px; display: inline-block; }
+        .desktop-icon {
+            width: 100%; text-align: center; cursor: pointer; padding: 12px 5px;
+            border-radius: 8px; transition: all 0.2s; border: 1px solid transparent;
+            position: relative; z-index: 2;
+        }
+        .desktop-icon:hover { background: rgba(139, 92, 246, 0.15); border-color: rgba(139, 92, 246, 0.3); }
+        
+        .svg-icon {
+            width: 42px; height: 42px; margin: 0 auto 10px;
+            stroke: #a855f7; stroke-width: 1.2; fill: none;
+            filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.5));
+            transition: stroke 0.3s, filter 0.3s;
+        }
+        .desktop-icon:hover .svg-icon { stroke: #d946ef; filter: drop-shadow(0 0 12px rgba(217, 70, 239, 0.7)); }
+        
+        .desktop-icon span { font-size: 11px; color: #e2e8f0; text-shadow: 0 2px 4px #000; font-family: 'Fira Code', monospace; display: block; line-height: 1.4; }
+
+        /* --- Telemetry Panel --- */
+        .metrics-panel {
+            position: absolute; right: 20px; top: 50px; width: 280px;
+            background: rgba(13, 15, 22, 0.7); backdrop-filter: blur(15px);
+            border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 10px;
+            padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            font-family: 'Fira Code', monospace; color: #94a3b8;
+            z-index: 50; transition: all 0.5s ease;
+        }
+        .metrics-header { 
+            font-size: 12px; color: #a855f7; border-bottom: 1px solid rgba(168,85,247,0.2); 
+            padding-bottom: 10px; margin-bottom: 15px; letter-spacing: 1px; font-weight: bold; 
+        }
+        .status-badge { 
+            display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 9px; 
+            background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); float: right;
+            transition: all 0.5s;
+        }
+        .status-badge.active { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
+        
+        .metric-row { margin-bottom: 12px; }
+        .metric-label { font-size: 10px; display: flex; justify-content: space-between; margin-bottom: 4px; color: #cbd5e1; }
+        .metric-bar-bg { width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden; }
+        .metric-bar-fill { height: 100%; width: 0%; background: #d946ef; transition: width 2s cubic-bezier(0.1, 0.5, 0.2, 1); }
+        
+        .tier-progress { margin-top: 20px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.1); }
+        .tier-label { font-size: 11px; color: #e2e8f0; text-align: center; margin-bottom: 8px; }
+        .tier-label span { color: #10b981; font-weight: bold; }
+
+        /* --- Tooltips --- */
+        .tutorial-tooltip {
+            position: absolute;
+            width: 260px; background: rgba(15, 17, 26, 0.95); backdrop-filter: blur(10px);
+            padding: 12px 16px; border-radius: 8px; z-index: 10000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            opacity: 0; visibility: hidden; transition: opacity 0.3s ease;
+        }
+        .tutorial-tooltip.left-arrow { left: 105px; top: 50%; transform: translateY(-50%); }
+        .tutorial-tooltip.left-arrow::before {
+            content: ''; position: absolute; left: -6px; top: 50%; transform: translateY(-50%) rotate(45deg);
+            width: 12px; height: 12px; background: rgba(15, 17, 26, 0.95);
+            border-left: inherit; border-bottom: inherit;
+        }
+        .tutorial-tooltip.bottom-arrow::before {
+            content: ''; position: absolute; left: 45px; bottom: -6.5px; transform: rotate(45deg);
+            width: 12px; height: 12px; background: rgba(15, 17, 26, 0.95);
+            border-bottom: inherit; border-right: inherit;
+        }
+
+        .tooltip-step-1 { border: 1px solid #10b981; box-shadow: 0 0 20px rgba(16, 185, 129, 0.15); }
+        .tooltip-step-1::before { border-left: 1px solid #10b981; border-bottom: 1px solid #10b981; }
+        .tooltip-step-2 { border: 1px solid #d946ef; box-shadow: 0 0 20px rgba(217, 70, 239, 0.15); }
+        .tooltip-step-2::before { border-left: 1px solid #d946ef; border-bottom: 1px solid #d946ef; }
+        .tooltip-step-3 { border: 1px solid #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.15); }
+
+        .tooltip-title { font-family: 'Fira Code', monospace; font-size: 11px; font-weight: bold; margin-bottom: 5px; }
+        .tooltip-step-1 .tooltip-title { color: #10b981; }
+        .tooltip-step-2 .tooltip-title { color: #d946ef; }
+        .tooltip-step-3 .tooltip-title { color: #3b82f6; }
+        .tooltip-text { font-size: 11px; line-height: 1.5; color: #cbd5e1; }
+
+        .tutorial-ring {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 100%; height: 100%; padding: 15px; border-radius: 12px;
+            opacity: 0; pointer-events: none; z-index: 1;
+        }
+        .ring-1 { border: 2px solid #10b981; }
+        .ring-2 { border: 2px solid #d946ef; }
+        .tutorial-ring.active { animation: pingRing 1.5s cubic-bezier(0, 0, 0.2, 1) infinite; opacity: 1; }
+        
+        @keyframes pulseGreen {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+        .pulse-green { animation: pulseGreen 1.5s infinite; }
+        @keyframes pingRing { 75%, 100% { transform: translate(-50%, -50%) scale(1.3); opacity: 0; } }
+
+        /* --- Windows --- */
+        .os-window {
+            position: absolute; background: rgba(13, 15, 22, 0.85); backdrop-filter: blur(20px);
+            border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 10px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.6); display: none; flex-direction: column; 
+            transition: box-shadow 0.3s, border-color 0.3s;
+        }
+        .os-window.active { border-color: #d946ef; box-shadow: 0 25px 60px rgba(0,0,0,0.8), 0 0 30px rgba(217, 70, 239, 0.15); }
+        
+        .os-window.maximized {
+            top: 32px !important; left: 0 !important; width: 100% !important; height: calc(100% - 32px) !important;
+            border-radius: 0; transition: all 0.3s ease;
+        }
+
+        .title-bar {
+            background: rgba(0, 0, 0, 0.5); height: 38px; display: flex;
+            justify-content: space-between; align-items: center; padding: 0 15px;
+            cursor: grab; border-bottom: 1px solid rgba(168, 85, 247, 0.15); border-radius: 9px 9px 0 0; 
+        }
+        .os-window.maximized .title-bar { border-radius: 0; }
+        .title-bar:active { cursor: grabbing; }
+        .window-controls { display: flex; gap: 8px; }
+        .control-btn { width: 12px; height: 12px; border-radius: 50%; cursor: pointer; transition: 0.2s; }
+        .close-btn { background: #ef4444; } .min-btn { background: #eab308; } .max-btn { background: #10b981; }
+        .window-title { font-size: 12px; color: #94a3b8; font-family: 'Fira Code', monospace; pointer-events: none; }
+
+        /* --- Content Areas --- */
+        .text-editor-content { padding: 30px; font-family: 'Fira Code', monospace; font-size: 14px; line-height: 1.8; color: #94a3b8; height: 100%; overflow-y: auto; border-radius: 0 0 9px 9px;}
+        .highlight { color: #d946ef; font-weight: bold; text-shadow: 0 0 10px rgba(217, 70, 239, 0.3); }
+        .owasp-text { color: #8b5cf6; font-weight: bold; }
+        .cursor { display: inline-block; width: 8px; height: 16px; background: #d946ef; animation: blink 1s infinite; vertical-align: middle; margin-left: 4px; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        .tool-content { padding: 35px 30px; border-radius: 0 0 9px 9px;}
+        .app-header { text-align: center; margin-bottom: 30px; }
+        .app-header h2 { font-size: 20px; color: #e2e8f0; margin-bottom: 8px; font-weight: 700; }
+        .app-header p { font-size: 12px; color: #8b5cf6; font-family: 'Fira Code', monospace; }
+        
+        .input-group { margin-bottom: 22px; position: relative; }
+        .input-group label { display: block; font-size: 11px; color: #a855f7; margin-bottom: 8px; font-family: 'Fira Code', monospace; text-transform: uppercase; letter-spacing: 1px; }
+        .input-group input {
+            width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 6px; padding: 14px 15px; color: #fff; font-family: 'Inter', sans-serif; font-size: 15px; outline: none; transition: 0.3s;
+        }
+        .input-group input:focus { border-color: #d946ef; background: rgba(217, 70, 239, 0.05); box-shadow: 0 0 15px rgba(217, 70, 239, 0.1); }
+        
+        .btn-claim {
+            width: 100%; background: linear-gradient(135deg, #7c3aed, #c026d3);
+            color: #fff; border: none; padding: 15px; border-radius: 6px;
+            font-family: 'Fira Code', monospace; font-size: 14px; font-weight: bold;
+            cursor: pointer; transition: 0.3s; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .btn-claim:hover { box-shadow: 0 8px 25px rgba(192, 38, 211, 0.4); transform: translateY(-2px); }
+
+        .cert-viewer-content {
+            background: #ffffff; color: #111827; padding: 40px; text-align: center;
+            border-radius: 0 0 9px 9px; position: relative; overflow: hidden; height: calc(100% - 38px);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .cert-watermark {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 120px; font-weight: 900; color: #f3f4f6; opacity: 0.6; pointer-events: none; z-index: 0;
+        }
+        .cert-layer { position: relative; z-index: 10; width: 100%; }
+        #qrcode-container canvas, #qrcode-container img { width: 100px !important; height: 100px !important; }
+        
+        .guide-list { list-style: none; padding: 0; margin-top: 15px; color: #cbd5e1; font-size: 13px; line-height: 2; }
+        .guide-list li::before { content: '>'; color: #a855f7; margin-right: 8px; font-weight: bold; }
     </style>
 </head>
-<body class="bg-gray-900 text-white flex flex-col items-center justify-center min-h-screen p-4">
+<body>
 
-    <div id="loading" class="text-xl animate-pulse text-blue-400 font-semibold">Verifying Digital Credential...</div>
-
-    <div id="cert-display" class="hidden bg-white text-gray-900 p-8 md:p-16 rounded-xl shadow-2xl border-[12px] border-blue-900 text-center max-w-3xl w-full relative overflow-hidden">
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-gray-100 text-9xl font-black opacity-40 pointer-events-none z-0">
-            OWASP
-        </div>
-
-        <div class="relative z-10">
-            <h1 class="text-4xl md:text-5xl font-black mb-2 text-gray-800">Certificate of Recognition</h1>
-            <p class="text-lg md:text-xl text-gray-600 mb-8">This digital credential validates the contributions of</p>
-            
-            <h2 id="real-name" class="text-5xl md:text-6xl font-serif text-blue-700 mt-6 mb-2 inline-block px-10">Name</h2>
-            <p id="user-name" class="text-xl text-gray-500 font-mono mb-6 border-b-2 border-gray-300 pb-4">@username</p>
-            
-            <p class="text-lg text-gray-700 mt-4 px-4">
-                Has been officially recognized as a vital contributor to the <br>
-                <strong>Open Web Application Security Project (OWASP)</strong>.
-            </p>
-
-            <div class="mt-12 bg-gray-50 border border-gray-200 p-6 rounded-lg shadow-inner">
-                <p class="text-sm text-gray-500 uppercase tracking-widest mb-1">Achievement Tier</p>
-                <p id="tier-text" class="text-3xl font-bold uppercase"></p>
-            </div>
-            
-            <div class="mt-8 flex flex-col items-center justify-center">
-                <div id="qrcode-container" class="p-2 bg-white rounded-lg shadow-md border border-gray-200"></div>
-                <p class="text-[10px] text-gray-400 mt-2 font-mono tracking-wide">Scan to Verify Authentic Credential</p>
-            </div>
-
-            <p class="text-xs text-gray-400 mt-6">Cryptographically Verified by OWASP Recognition Engine</p>
-        </div>
+    <div class="bg-layer">
+        <div class="orb-1"></div>
+        <div class="orb-2"></div>
+        <div class="bg-noise"></div>
     </div>
 
-    <div id="request-section" class="hidden bg-gray-800 p-10 rounded-2xl border border-gray-700 shadow-2xl text-center max-w-lg w-full mt-10">
-        <h2 class="text-3xl font-bold mb-4 text-white">آیا در OWASP مشارکت داشته‌اید؟</h2>
-        <p class="text-gray-400 mb-6 leading-relaxed">
-            نام کامل خود را وارد کنید تا در مدرک درج شود. سپس برای دریافت مدرک کلیک کنید.
-        </p>
-        
-        <input type="text" id="name-input" placeholder="مثال: Meysam Bal-afkan" class="w-full p-4 mb-6 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500 text-center text-lg">
+    <div id="desktop">
+        <div class="taskbar">
+            <span>OWASP // WebOS Environment</span>
+            <span class="clock" id="clock">00:00</span>
+        </div>
 
-        <button onclick="generateIssueLink()" class="w-full inline-block bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-10 rounded-lg transition duration-300 shadow-lg text-lg">
-            🚀 ایجاد درخواست مدرک
-        </button>
-        <p class="text-xs text-gray-500 mt-4">در صورت اشتباه در نام، می‌توانید دوباره این مراحل را طی کنید.</p>
+        <div class="metrics-panel" id="metrics-panel">
+            <div class="metrics-header">
+                CONTRIBUTOR TELEMETRY
+                <span class="status-badge" id="telemetry-status">STANDBY</span>
+            </div>
+            
+            <div class="metric-row">
+                <div class="metric-label"><span>Commits</span> <span id="val-commits">--</span></div>
+                <div class="metric-bar-bg"><div class="metric-bar-fill" id="bar-commits" style="background:#3b82f6;"></div></div>
+            </div>
+            <div class="metric-row">
+                <div class="metric-label"><span>Pull Requests</span> <span id="val-prs">--</span></div>
+                <div class="metric-bar-bg"><div class="metric-bar-fill" id="bar-prs" style="background:#a855f7;"></div></div>
+            </div>
+            <div class="metric-row">
+                <div class="metric-label"><span>Issues</span> <span id="val-issues">--</span></div>
+                <div class="metric-bar-bg"><div class="metric-bar-fill" id="bar-issues" style="background:#f59e0b;"></div></div>
+            </div>
+            
+            <div class="metric-row" style="margin-top: 15px; display: flex; flex-direction: column; gap: 5px;">
+                <div class="metric-label" style="color: #10b981;"><span>Lines Added</span> <span id="val-added">--</span></div>
+                <div class="metric-label" style="color: #ef4444;"><span>Lines Removed</span> <span id="val-removed">--</span></div>
+                <div class="metric-label" style="color: #60a5fa;"><span>Projects Interacted</span> <span id="val-projects">--</span></div>
+            </div>
+
+            <div class="tier-progress">
+                <div class="tier-label" id="tier-path">Next Tier Target: <span>AWAITING IDENTITY</span></div>
+                <div class="metric-bar-bg" style="height: 10px; border-radius: 5px;">
+                    <div class="metric-bar-fill" id="bar-tier" style="background: linear-gradient(90deg, #10b981, #d946ef);"></div>
+                </div>
+                <div class="metric-label" style="justify-content: center; margin-top: 8px; font-size: 9px;" id="val-tier-pct">System scanning for parameters...</div>
+            </div>
+        </div>
+
+        <div class="icon-grid">
+            <div class="icon-wrapper">
+                <div class="desktop-icon" ondblclick="openWindow('guide-win')">
+                    <svg class="svg-icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <span>System_Guide<br>.txt</span>
+                </div>
+            </div>
+
+            <div class="icon-wrapper">
+                <div class="tutorial-ring ring-1" id="ring-letter"></div>
+                <div class="tutorial-tooltip tooltip-step-1 left-arrow" id="tooltip-1">
+                    <div class="tooltip-title">STEP 1: INITIALIZE</div>
+                    <div class="tooltip-text">Double-click the letter icon to read your appreciation message.</div>
+                </div>
+                
+                <div class="desktop-icon" ondblclick="openWindow('letter-win'); nextTutorialStep();">
+                    <svg class="svg-icon" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <span>Letter_of_<br>Appreciation</span>
+                </div>
+            </div>
+            
+            <div class="icon-wrapper">
+                <div class="tutorial-ring ring-2" id="ring-tool"></div>
+                <div class="tutorial-tooltip tooltip-step-2 left-arrow" id="tooltip-2">
+                    <div class="tooltip-title">STEP 2: PROVISION</div>
+                    <div class="tooltip-text">Execution authorized. Double-click the provisioning tool to claim your credential.</div>
+                </div>
+
+                <div class="desktop-icon" ondblclick="openWindow('tool-win')">
+                    <svg class="svg-icon" viewBox="0 0 24 24">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        <path d="M9 12l2 2 4-4"></path>
+                    </svg>
+                    <span>CRT_Gen.exe</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="os-window" id="guide-win" style="top: 15%; left: 30%; width: 550px; height: 400px;">
+            <div class="title-bar" onmousedown="startDrag(event, 'guide-win')">
+                <div class="window-controls">
+                    <div class="control-btn close-btn" onclick="closeWindow('guide-win')"></div>
+                    <div class="control-btn min-btn"></div>
+                    <div class="control-btn max-btn" onclick="toggleMaximize('guide-win')"></div>
+                </div>
+                <div class="window-title">cat ~/docs/System_Guide.txt</div>
+                <div style="width: 40px;"></div>
+            </div>
+            <div class="text-editor-content">
+                <h3 style="color: #10b981; font-size: 18px; margin-bottom: 10px;">> WELCOME TO OWASP OS Workspace</h3>
+                <p>This secure environment is designed for verified contributors to provision and view their digital recognition credentials.</p>
+                
+                <h4 style="color: #d946ef; margin-top: 25px; margin-bottom: 5px; font-size: 14px;">[ SYSTEM WORKFLOW ]</h4>
+                <ul class="guide-list">
+                    <li>Read your initial briefing in <b>Letter_of_Appreciation</b>.</li>
+                    <li>Execute <b>CRT_Gen.exe</b> to initialize your identity request.</li>
+                    <li>Submit your name. The system will redirect you to GitHub to open an official issue.</li>
+                    <li>Once approved by the team, you will be provided a secure link with your JWT parameter.</li>
+                    <li>Returning to this OS with your parameter will activate your <span class="highlight">Telemetry</span> and decrypt your <span class="highlight">Verifiable Certificate</span>.</li>
+                </ul>
+                <br>
+                <p style="color: #64748b; font-size: 12px;">> Status: System ready. Awaiting user input...</p>
+            </div>
+        </div>
+
+        <div class="os-window" id="letter-win" style="top: 25%; left: 20%; width: 550px; height: 350px;">
+            <div class="title-bar" onmousedown="startDrag(event, 'letter-win')">
+                <div class="window-controls">
+                    <div class="control-btn close-btn" onclick="closeWindow('letter-win')"></div>
+                    <div class="control-btn min-btn"></div>
+                    <div class="control-btn max-btn"></div>
+                </div>
+                <div class="window-title">vi ~/desktop/Letter_of_Appreciation.txt</div>
+                <div style="width: 40px;"></div>
+            </div>
+            <div class="text-editor-content">
+                <div id="typewriter-text"></div>
+                <span class="cursor" id="tw-cursor" style="display: none;"></span>
+            </div>
+        </div>
+
+        <div class="os-window" id="tool-win" style="top: 35%; left: 40%; width: 450px;">
+            <div class="title-bar" onmousedown="startDrag(event, 'tool-win')">
+                <div class="window-controls">
+                    <div class="control-btn close-btn" onclick="closeWindow('tool-win')"></div>
+                    <div class="control-btn min-btn"></div>
+                    <div class="control-btn max-btn"></div>
+                </div>
+                <div class="window-title">OWASP CRT Provisioning Engine</div>
+                <div style="width: 40px;"></div>
+            </div>
+            <div class="tool-content">
+                <div class="app-header">
+                    <h2>Identity Provisioning</h2>
+                    <p>Enter data to generate verifiable credential</p>
+                </div>
+                <form onsubmit="generateIssueLink(event)">
+                    <div class="input-group">
+                        <label>First Name</label>
+                        <input type="text" id="fname-input" required autocomplete="off">
+                    </div>
+                    <div class="input-group">
+                        <label>Last Name</label>
+                        <input type="text" id="lname-input" required autocomplete="off">
+                    </div>
+                    <button type="submit" class="btn-claim">Initialize Certificate</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="os-window" id="cert-win" style="top: 10%; left: 20%; width: 800px;">
+            
+            <div class="tutorial-tooltip tooltip-step-3 bottom-arrow" id="tooltip-max" style="top: -70px; left: 10px;">
+                <div class="tooltip-title">HINT: FULLSCREEN</div>
+                <div class="tooltip-text">Click the green button to maximize the certificate for a better view.</div>
+            </div>
+
+            <div class="title-bar" onmousedown="startDrag(event, 'cert-win')">
+                <div class="window-controls">
+                    <div class="control-btn close-btn" onclick="closeWindow('cert-win')"></div>
+                    <div class="control-btn min-btn"></div>
+                    <div class="control-btn max-btn" id="max-btn-cert" onclick="toggleMaximize('cert-win')"></div>
+                </div>
+                <div class="window-title">OWASP_Certificate_Viewer.exe</div>
+                <div style="width: 40px;"></div>
+            </div>
+            <div class="cert-viewer-content">
+                <div class="cert-watermark">OWASP</div>
+                <div class="cert-layer">
+                    <h1 style="font-size: 32px; font-weight: 900; color: #1f2937; margin-bottom: 5px;">Certificate of Recognition</h1>
+                    <p style="color: #4b5563; font-size: 14px; margin-bottom: 20px;">This digital credential validates the contributions of</p>
+                    
+                    <h2 id="real-name" style="font-size: 42px; font-family: serif; color: #1d4ed8; margin: 10px 0;">Name</h2>
+                    <p id="user-name" style="font-size: 16px; color: #6b7280; font-family: monospace; border-bottom: 2px solid #e5e7eb; display: inline-block; padding-bottom: 10px; margin-bottom: 20px;">@username</p>
+                    
+                    <p style="font-size: 15px; color: #374151; margin-bottom: 25px; line-height: 1.6;">
+                        Has been officially recognized as a vital contributor to the <br>
+                        <strong>Open Web Application Security Project (OWASP)</strong>.
+                    </p>
+
+                    <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px; margin-bottom: 25px; display: inline-block; min-width: 200px;">
+                        <p style="font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">Achievement Tier</p>
+                        <p id="tier-text" style="font-size: 28px; font-weight: bold; text-transform: uppercase; margin: 0;"></p>
+                    </div>
+                    
+                    <div style="display: flex; flex-direction: column; align-items: center;">
+                        <div id="qrcode-container" style="padding: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; display: inline-block;"></div>
+                        <p style="font-size: 10px; color: #9ca3af; font-family: monospace; margin-top: 8px;">Scan to Verify Authentic Credential</p>
+                    </div>
+
+                    <div id="error-display" style="display: none; background: #fef2f2; border: 1px solid #f87171; color: #dc2626; padding: 15px; border-radius: 8px; font-weight: bold; margin-top: 20px;"></div>
+                </div>
+            </div>
+        </div>
+
     </div>
-
-    <div id="error-display" class="hidden bg-red-900/50 border border-red-500 text-red-200 p-8 rounded-xl max-w-xl text-center shadow-lg mt-10"></div>
 
     <script>
+        // Clock
+        setInterval(() => {
+            const d = new Date();
+            document.getElementById('clock').innerText = 
+                d.getHours().toString().padStart(2, '0') + ':' + 
+                d.getMinutes().toString().padStart(2, '0');
+        }, 1000);
+
+        // --- IDM-Style Tooltip Logic ---
+        const tooltip1 = document.getElementById('tooltip-1');
+        const tooltip2 = document.getElementById('tooltip-2');
+        const ringLetter = document.getElementById('ring-letter');
+        const ringTool = document.getElementById('ring-tool');
+        let tutorialStep = 1;
+
+        function nextTutorialStep() {
+            if (tutorialStep === 1) {
+                tutorialStep = 2;
+                tooltip1.style.opacity = '0';
+                tooltip1.style.visibility = 'hidden';
+                ringLetter.classList.remove('active');
+                
+                setTimeout(() => {
+                    tooltip2.style.opacity = '1';
+                    tooltip2.style.visibility = 'visible';
+                    ringTool.classList.add('active');
+                }, 2000);
+            }
+        }
+
+        // --- Window Management ---
+        let highestZ = 100;
+        
+        function openWindow(id) {
+            const win = document.getElementById(id);
+            win.style.display = 'flex';
+            win.style.zIndex = ++highestZ;
+            
+            document.querySelectorAll('.os-window').forEach(w => w.classList.remove('active'));
+            win.classList.add('active');
+
+            if(id === 'tool-win') {
+                tooltip2.style.opacity = '0';
+                tooltip2.style.visibility = 'hidden';
+                ringTool.classList.remove('active');
+            }
+
+            if(id === 'letter-win' && !letterTyped) {
+                startTypewriter();
+            }
+        }
+
+        function closeWindow(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function toggleMaximize(id) {
+            const win = document.getElementById(id);
+            win.classList.toggle('maximized');
+            
+            if (id === 'cert-win') {
+                const tooltipMax = document.getElementById('tooltip-max');
+                const maxBtn = document.getElementById('max-btn-cert');
+                if(tooltipMax) {
+                    tooltipMax.style.opacity = '0';
+                    tooltipMax.style.visibility = 'hidden';
+                }
+                if(maxBtn) {
+                    maxBtn.classList.remove('pulse-green');
+                }
+            }
+        }
+
+        function startDrag(e, id) {
+            const win = document.getElementById(id);
+            if (win.classList.contains('maximized')) return;
+
+            win.style.zIndex = ++highestZ;
+            document.querySelectorAll('.os-window').forEach(w => w.classList.remove('active'));
+            win.classList.add('active');
+
+            let startX = e.clientX, startY = e.clientY;
+            let startLeft = win.offsetLeft, startTop = win.offsetTop;
+
+            function drag(e) {
+                win.style.left = (startLeft + e.clientX - startX) + 'px';
+                win.style.top = (startTop + e.clientY - startY) + 'px';
+            }
+
+            function stopDrag() {
+                document.removeEventListener('mousemove', drag);
+                document.removeEventListener('mouseup', stopDrag);
+            }
+
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+        }
+
+        document.querySelectorAll('.os-window').forEach(win => {
+            win.addEventListener('mousedown', function() {
+                this.style.zIndex = ++highestZ;
+                document.querySelectorAll('.os-window').forEach(w => w.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // --- Typewriter Effect ---
+        let letterTyped = false;
+        const letterLines = [
+            "Initiating secure connection...",
+            "<br>The open web faces relentless threats daily.",
+            "Its defense relies on the dedication of <span class='highlight'>exceptional individuals</span>.",
+            "Through your research and code, you have strengthened our collective security.",
+            "The <span class='owasp-text'>OWASP Foundation</span> recognizes your vital impact.",
+            "<br><span style='color:#64748b;'>-- OWASP-CRT Project Leader</span>",
+            "<br>> Execute CRT_Gen.exe to claim your verifiable credential."
+        ];
+
+        function startTypewriter() {
+            letterTyped = true;
+            const container = document.getElementById('typewriter-text');
+            const cursor = document.getElementById('tw-cursor');
+            cursor.style.display = 'inline-block';
+            container.innerHTML = '';
+            
+            let currentLine = 0;
+            let currentChar = 0;
+            let isTag = false;
+            let tagBuffer = '';
+
+            function type() {
+                if (currentLine < letterLines.length) {
+                    let lineStr = letterLines[currentLine];
+                    
+                    if (currentChar < lineStr.length) {
+                        let char = lineStr.charAt(currentChar);
+                        if (char === '<') isTag = true;
+                        
+                        if (isTag) {
+                            tagBuffer += char;
+                            if (char === '>') {
+                                isTag = false;
+                                container.insertAdjacentHTML('beforeend', tagBuffer);
+                                tagBuffer = '';
+                            }
+                        } else {
+                            container.insertAdjacentHTML('beforeend', char);
+                        }
+                        currentChar++;
+                        setTimeout(type, isTag ? 0 : 30);
+                    } else {
+                        container.insertAdjacentHTML('beforeend', '<br>');
+                        currentLine++;
+                        currentChar = 0;
+                        setTimeout(type, 500);
+                    }
+                }
+            }
+            setTimeout(type, 500);
+        }
+
+        // --- Telemetry Activation Logic ---
+        function activateTelemetry(tier) {
+            const badge = document.getElementById('telemetry-status');
+            badge.innerText = 'CONNECTED';
+            badge.classList.add('active');
+
+            setTimeout(() => {
+                document.getElementById('val-commits').innerText = '1,042';
+                document.getElementById('bar-commits').style.width = '85%';
+            }, 500);
+
+            setTimeout(() => {
+                document.getElementById('val-prs').innerText = '64';
+                document.getElementById('bar-prs').style.width = '60%';
+            }, 800);
+
+            setTimeout(() => {
+                document.getElementById('val-issues').innerText = '112';
+                document.getElementById('bar-issues').style.width = '75%';
+            }, 1100);
+
+            setTimeout(() => {
+                document.getElementById('val-added').innerText = '+34,590';
+                document.getElementById('val-removed').innerText = '-12,230';
+                document.getElementById('val-projects').innerText = '4 Projects';
+            }, 1500);
+
+            let nextTier = 'SILVER';
+            let progressPct = '65%';
+            let fillPct = '65%';
+            let currentTier = (tier || "").toUpperCase();
+
+            if(currentTier === 'BRONZE') {
+                nextTier = 'SILVER'; progressPct = '68%'; fillPct = '68%';
+            } else if(currentTier === 'SILVER') {
+                nextTier = 'GOLD'; progressPct = '82%'; fillPct = '82%';
+            } else if(currentTier === 'GOLD') {
+                nextTier = 'MAX LEVEL'; progressPct = '100% Achieved'; fillPct = '100%';
+            }
+
+            setTimeout(() => {
+                document.getElementById('tier-path').innerHTML = `Next Tier Target: <span>${nextTier}</span>`;
+                document.getElementById('bar-tier').style.width = fillPct;
+                document.getElementById('val-tier-pct').innerText = fillPct === '100%' ? 'Highest tier unlocked!' : `${progressPct} completed to next tier`;
+            }, 2000);
+        }
+
+        // --- Certificate Logic & Issue Redirect ---
         const PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoEQfLkoDz9yg0jXxDfBu
 GXqskmCW3/ag6n8PxqDoHr6kvwjMR/sSl5/lOQEkFizEfCZSlwRQayuEyuSODKCg
@@ -77,40 +655,51 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
 8wIDAQAB
 -----END PUBLIC KEY-----`;
 
-        function showError(msg) {
-            const err = document.getElementById('error-display');
-            err.innerHTML = `<h3 class='text-2xl font-bold'>${msg}</h3>`;
-            err.classList.remove('hidden');
-        }
-
-        function generateIssueLink() {
-            const fullName = document.getElementById('name-input').value.trim();
-            if (!fullName) {
-                alert("لطفاً نام خود را وارد کنید!");
-                return;
-            }
-
+        function generateIssueLink(event) {
+            event.preventDefault();
+            const fname = document.getElementById('fname-input').value.trim();
+            const lname = document.getElementById('lname-input').value.trim();
+            if (!fname || !lname) { alert("لطفاً مشخصات را کامل کنید!"); return; }
+            const fullName = fname + " " + lname;
             const repoOwner = "Galaxy-sc"; 
             const repoName = "test"; 
-            
             const issueTitle = encodeURIComponent("Cert Request: Generate My Certificate");
             const issueBody = encodeURIComponent(`لطفا مدرک مشارکت من در پروژه‌های OWASP را صادر کنید.\n\nFullName: ${fullName}`);
-            
             const issueUrl = `https://github.com/${repoOwner}/${repoName}/issues/new?title=${issueTitle}&body=${issueBody}`;
             window.open(issueUrl, '_blank');
         }
 
-        const params = new URLSearchParams(window.location.search);
-        const safeToken = params.get('cert');
-
-        setTimeout(() => {
-            document.getElementById('loading').style.display = 'none';
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            const safeToken = params.get('cert');
 
             if (safeToken) {
+                tooltip1.style.opacity = '0';
+                tooltip1.style.visibility = 'hidden';
+                ringLetter.classList.remove('active');
+
+                openWindow('cert-win');
+
+                setTimeout(() => {
+                    const tooltipMax = document.getElementById('tooltip-max');
+                    const maxBtn = document.getElementById('max-btn-cert');
+                    if(tooltipMax && maxBtn) {
+                        tooltipMax.style.opacity = '1';
+                        tooltipMax.style.visibility = 'visible';
+                        maxBtn.classList.add('pulse-green');
+                        setTimeout(() => {
+                            if (tooltipMax.style.opacity === '1') {
+                                tooltipMax.style.opacity = '0';
+                                tooltipMax.style.visibility = 'hidden';
+                                maxBtn.classList.remove('pulse-green');
+                            }
+                        }, 6000);
+                    }
+                }, 1200);
+
                 try {
                     const staticHeader = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9";
                     const fullToken = staticHeader + "." + safeToken;
-
                     const isValid = KJUR.jws.JWS.verifyJWT(fullToken, PUBLIC_KEY, {alg: ['RS256']});
                     
                     if (isValid) {
@@ -120,36 +709,45 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
                             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
                         }).join('')));
 
-                        document.getElementById('cert-display').classList.remove('hidden');
-                        
                         document.getElementById('real-name').innerText = payload.real_name || payload.user;
                         document.getElementById('user-name').innerText = "@" + payload.user;
                         
                         const tierEl = document.getElementById('tier-text');
                         tierEl.innerText = payload.tier + " TIER";
-                        tierEl.className = payload.tier === "Gold" ? "text-yellow-600 font-extrabold text-4xl" : "text-gray-500 font-extrabold text-4xl";
+                        tierEl.style.color = payload.tier === "Gold" ? "#d97706" : "#6b7280";
 
-                        // تولید QR Code با سایز باطنی ۲۰۰ برای اسکن دقیق
                         document.getElementById('qrcode-container').innerHTML = ""; 
                         new QRCode(document.getElementById("qrcode-container"), {
                             text: window.location.href,
-                            width: 300,
-                            height: 300,
-                            colorDark : "#111827",
-                            colorLight : "#ffffff",
+                            width: 100, height: 100,
+                            colorDark : "#111827", colorLight : "#ffffff",
                             correctLevel : QRCode.CorrectLevel.L
                         });
 
+                        activateTelemetry(payload.tier || 'BRONZE');
+
                     } else {
-                        showError("❌ امضا نامعتبر است! این مدرک جعل شده است.");
+                        const err = document.getElementById('error-display');
+                        err.style.display = 'block';
+                        err.innerText = "❌ امضا نامعتبر است! این مدرک جعل شده است.";
                     }
                 } catch (e) {
-                    showError("❌ ساختار لینک دستکاری شده است.");
+                    const err = document.getElementById('error-display');
+                    err.style.display = 'block';
+                    err.innerText = "❌ ساختار لینک دستکاری شده است.";
                 }
             } else {
-                document.getElementById('request-section').classList.remove('hidden');
+                // اگر کاربر بدون مدرک آمد، پنجره راهنما را باز کن
+                openWindow('guide-win');
+                
+                // و تولتیپ آموزشی را با کمی تاخیر نمایش بده
+                setTimeout(() => {
+                    tooltip1.style.opacity = '1';
+                    tooltip1.style.visibility = 'visible';
+                    ringLetter.classList.add('active');
+                }, 1500);
             }
-        }, 800);
+        };
     </script>
 </body>
 </html>
