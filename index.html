@@ -41,6 +41,42 @@
         }
 
         /* =========================================
+           CUSTOM WINDOW SCROLLBARS (UPDATED)
+           ========================================= */
+        /* Targets all os-window elements for custom scrollbars */
+        .os-window * {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(173, 216, 230, 0.5) rgba(31, 41, 55, 0.5); /* Thumb, Track */
+        }
+
+        /* Webkit specific styles for more control and glow */
+        .os-window ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        .os-window ::-webkit-scrollbar-track {
+            background: rgba(31, 41, 55, 0.3); /* dark gray track */
+            border-radius: 4px;
+        }
+
+        .os-window ::-webkit-scrollbar-thumb {
+            background: rgba(173, 216, 230, 0.5); /* light ice-blue thumb */
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+
+        .os-window ::-webkit-scrollbar-thumb:hover {
+            background: rgba(173, 216, 230, 0.8);
+            box-shadow: 0 0 8px rgba(173, 216, 230, 0.5);
+        }
+
+        .os-window ::-webkit-scrollbar-corner {
+            background: transparent;
+        }
+
+        /* =========================================
            SINGLE UNIFIED TASKBAR (TOP FLOATING)
            ========================================= */
         .taskbar {
@@ -120,13 +156,15 @@
         .clock-time { font-size: 13px; font-weight: bold; color: #9d4edd; font-family: 'Inter', sans-serif; letter-spacing: 0.5px; }
         .clock-date { font-size: 9px; color: #94a3b8; font-family: 'Inter', sans-serif; text-transform: uppercase; font-weight: 600;}
 
-        /* --- Start Menu (Drops down from top-left EXACTLY below icon) --- */
+        /* --- Start Menu (Updated to Deep Liquified Glass) --- */
         .start-menu {
             position: absolute; top: 65px; left: 0; width: 300px;
-            background: rgba(13, 15, 22, 0.85); backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+            /* Applying deep glassmorphism similar to other windows but deeper */
+            background: linear-gradient(135deg, rgba(15, 17, 26, 0.9), rgba(13, 15, 22, 0.85));
+            backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
             border: 1px solid rgba(157, 78, 221, 0.2); border-radius: 16px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.1); z-index: 9998;
-            display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7), inset 0 1px 1px rgba(255,255,255,0.05);
+            z-index: 9998; display: flex; flex-direction: column; overflow: hidden;
             transform: translateY(-20px) scale(0.95); opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             transform-origin: top left;
         }
@@ -333,7 +371,7 @@
                         Root Terminal
                     </div>
                     <div class="menu-item" onclick="alert('System preferences locked.'); toggleStartMenu();">
-                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 2 2 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                         Environment Settings
                     </div>
                 </div>
@@ -637,7 +675,7 @@
             });
         }
 
-        // Open Window exclusively (for desktop shortcuts to prevent minimizing)
+        // Behavior fix: Click desktop icon brings to front/opens, doesn't minimize.
         function openWindow(id) {
             const win = document.getElementById(id);
             const wm = document.getElementById('window-manager');
@@ -647,6 +685,7 @@
                 document.getElementById('overview-btn').classList.remove('active');
             }
 
+            // Always show and bring to front
             win.style.display = 'flex';
             win.style.zIndex = ++highestZ;
             document.querySelectorAll('.os-window').forEach(w => w.classList.remove('active'));
@@ -665,7 +704,7 @@
             updateDockState();
         }
 
-        // Toggle Window (for taskbar items to minimize/restore)
+        // For dock items: Can minimize/restore
         function toggleWindow(id) {
             const win = document.getElementById(id);
             const wm = document.getElementById('window-manager');
@@ -682,6 +721,7 @@
                 win.classList.add('active');
             } else {
                 if (win.classList.contains('active')) {
+                    // Minimize if active
                     win.style.display = 'none';
                     win.classList.remove('active');
                     
@@ -694,6 +734,7 @@
                     });
                     if (nextWin) nextWin.classList.add('active');
                 } else {
+                    // Restore/bring to front if inactive
                     win.style.zIndex = ++highestZ;
                     document.querySelectorAll('.os-window').forEach(w => w.classList.remove('active'));
                     win.classList.add('active');
@@ -892,9 +933,9 @@
             let nextTier = 'SILVER'; let progressPct = '65%'; let fillPct = '65%';
             let currentTier = (tier || "").toUpperCase();
             
-            // Apply precise colors based on image references
-            let tierColor = '#ff2a5f'; // Pink/Red
-            let nextColor = '#4a7bfe'; // Blue
+            // Image mapping colors: Bronze (Red), Silver (Blue), Gold (Purple)
+            let tierColor = '#ff2a5f'; 
+            let nextColor = '#4a7bfe';
 
             if(currentTier === 'BRONZE') { 
                 nextTier = 'SILVER'; progressPct = '68%'; fillPct = '68%'; 
@@ -978,14 +1019,9 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
                         const tierEl = document.getElementById('tier-text');
                         tierEl.innerText = payload.tier + " TIER";
                         
-                        // Map tier text colors to new specific colors
-                        if(payload.tier === "Gold") {
-                            tierEl.style.color = "#9d4edd";
-                        } else if(payload.tier === "Silver") {
-                            tierEl.style.color = "#4a7bfe";
-                        } else {
-                            tierEl.style.color = "#ff2a5f";
-                        }
+                        if(payload.tier === "Gold") { tierEl.style.color = "#9d4edd"; }
+                        else if(payload.tier === "Silver") { tierEl.style.color = "#4a7bfe"; }
+                        else { tierEl.style.color = "#ff2a5f"; }
 
                         document.getElementById('qrcode-container').innerHTML = ""; 
                         new QRCode(document.getElementById("qrcode-container"), {
