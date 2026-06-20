@@ -40,18 +40,84 @@
             100% { transform: translate(40px, 60px) scale(1.1); }
         }
 
-        /* --- Taskbar --- */
+        /* --- Taskbar (Linux Style - Top) --- */
         .taskbar {
-            height: 32px; background: rgba(13, 15, 22, 0.7); backdrop-filter: blur(15px);
-            border-bottom: 1px solid rgba(168, 85, 247, 0.2); display: flex;
-            justify-content: space-between; align-items: center; padding: 0 20px; font-size: 12px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5); z-index: 9999; position: relative;
+            position: absolute; top: 0; left: 0; width: 100%; height: 40px; 
+            background: rgba(10, 12, 18, 0.85); backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(168, 85, 247, 0.3); display: flex;
+            justify-content: space-between; align-items: center; padding: 0 15px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.5); z-index: 9999;
         }
-        .taskbar span { font-weight: 600; letter-spacing: 1px; color: #a855f7; }
-        .clock { color: #d946ef !important; }
+        .taskbar-left, .taskbar-right { display: flex; align-items: center; gap: 15px; height: 100%; }
+        
+        .start-btn {
+            display: flex; align-items: center; gap: 8px; cursor: pointer;
+            padding: 6px 12px; border-radius: 6px; transition: all 0.2s;
+            border: 1px solid transparent; color: #e2e8f0; font-family: 'Fira Code', monospace; font-size: 13px; font-weight: bold;
+        }
+        .start-btn:hover, .start-btn.active {
+            background: rgba(139, 92, 246, 0.2); border-color: rgba(139, 92, 246, 0.5); box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+        }
+        .start-btn svg { width: 16px; height: 16px; fill: #d946ef; }
 
-        /* --- Desktop & SVG Icons --- */
-        #desktop { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; }
+        .taskbar-divider { width: 1px; height: 20px; background: rgba(255,255,255,0.1); }
+        .taskbar-title { font-size: 12px; color: #94a3b8; font-family: 'Fira Code', monospace; letter-spacing: 1px; }
+
+        .sys-tray-icons { display: flex; gap: 12px; align-items: center; margin-right: 10px; }
+        .sys-icon { 
+            width: 16px; height: 16px; stroke: #cbd5e1; stroke-width: 2; fill: none; 
+            cursor: pointer; transition: stroke 0.2s; 
+        }
+        .sys-icon:hover { stroke: #d946ef; }
+
+        .datetime-container {
+            display: flex; flex-direction: column; align-items: flex-end; justify-content: center;
+            cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: 0.2s;
+        }
+        .datetime-container:hover { background: rgba(255,255,255,0.05); }
+        .time-display { font-size: 13px; font-weight: 600; color: #d946ef; font-family: 'Inter', sans-serif; }
+        .date-display { font-size: 10px; color: #94a3b8; font-family: 'Fira Code', monospace; letter-spacing: 0.5px; }
+
+        /* --- Start Menu (Drops down from top) --- */
+        .start-menu {
+            position: absolute; top: 50px; left: 10px; width: 280px;
+            background: rgba(13, 15, 22, 0.9); backdrop-filter: blur(25px);
+            border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8); z-index: 9998;
+            display: flex; flex-direction: column; overflow: hidden;
+            transform: translateY(-10px); opacity: 0; pointer-events: none; transition: all 0.2s ease;
+        }
+        .start-menu.show { transform: translateY(0); opacity: 1; pointer-events: auto; }
+        
+        .menu-header {
+            padding: 20px 15px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(217, 70, 239, 0.05));
+            border-bottom: 1px solid rgba(168, 85, 247, 0.2); display: flex; align-items: center; gap: 10px;
+        }
+        .menu-avatar { width: 32px; height: 32px; border-radius: 50%; background: #a855f7; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; font-family: 'Fira Code', monospace;}
+        .menu-user-info { display: flex; flex-direction: column; }
+        .menu-user-name { font-size: 13px; font-weight: bold; color: #e2e8f0; }
+        .menu-user-role { font-size: 10px; color: #94a3b8; font-family: 'Fira Code', monospace; }
+
+        .menu-items { padding: 10px 0; }
+        .menu-item {
+            padding: 12px 20px; display: flex; align-items: center; gap: 12px;
+            cursor: pointer; transition: 0.2s; font-size: 13px; color: #cbd5e1;
+        }
+        .menu-item svg { width: 16px; height: 16px; stroke: #94a3b8; stroke-width: 2; fill: none; transition: 0.2s; }
+        .menu-item:hover { background: rgba(139, 92, 246, 0.15); color: #fff; }
+        .menu-item:hover svg { stroke: #d946ef; }
+        .menu-divider { height: 1px; background: rgba(255,255,255,0.05); margin: 5px 15px; }
+        
+        .menu-footer {
+            padding: 10px 15px; border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex; justify-content: flex-end;
+        }
+        .power-btn { cursor: pointer; padding: 5px; border-radius: 4px; transition: 0.2s; display: flex; align-items: center; justify-content: center;}
+        .power-btn svg { width: 18px; height: 18px; stroke: #ef4444; stroke-width: 2; fill: none; }
+        .power-btn:hover { background: rgba(239, 68, 68, 0.2); }
+
+        /* --- Desktop Area --- */
+        #desktop { position: absolute; top: 40px; left: 0; width: 100%; height: calc(100% - 40px); z-index: 10; }
         .icon-grid { display: flex; flex-direction: column; gap: 30px; padding: 30px; }
         
         .icon-wrapper { position: relative; width: 90px; display: inline-block; }
@@ -69,12 +135,11 @@
             transition: stroke 0.3s, filter 0.3s;
         }
         .desktop-icon:hover .svg-icon { stroke: #d946ef; filter: drop-shadow(0 0 12px rgba(217, 70, 239, 0.7)); }
-        
         .desktop-icon span { font-size: 11px; color: #e2e8f0; text-shadow: 0 2px 4px #000; font-family: 'Fira Code', monospace; display: block; line-height: 1.4; }
 
         /* --- Telemetry Panel --- */
         .metrics-panel {
-            position: absolute; right: 20px; top: 50px; width: 280px;
+            position: absolute; right: 20px; top: 20px; width: 280px;
             background: rgba(13, 15, 22, 0.7); backdrop-filter: blur(15px);
             border: 1px solid rgba(168, 85, 247, 0.2); border-radius: 10px;
             padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
@@ -103,22 +168,18 @@
 
         /* --- Tooltips --- */
         .tutorial-tooltip {
-            position: absolute;
-            width: 260px; background: rgba(15, 17, 26, 0.95); backdrop-filter: blur(10px);
-            padding: 12px 16px; border-radius: 8px; z-index: 10000;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            position: absolute; width: 260px; background: rgba(15, 17, 26, 0.95); backdrop-filter: blur(10px);
+            padding: 12px 16px; border-radius: 8px; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.8);
             opacity: 0; visibility: hidden; transition: opacity 0.3s ease;
         }
         .tutorial-tooltip.left-arrow { left: 105px; top: 50%; transform: translateY(-50%); }
         .tutorial-tooltip.left-arrow::before {
             content: ''; position: absolute; left: -6px; top: 50%; transform: translateY(-50%) rotate(45deg);
-            width: 12px; height: 12px; background: rgba(15, 17, 26, 0.95);
-            border-left: inherit; border-bottom: inherit;
+            width: 12px; height: 12px; background: rgba(15, 17, 26, 0.95); border-left: inherit; border-bottom: inherit;
         }
         .tutorial-tooltip.bottom-arrow::before {
             content: ''; position: absolute; left: 45px; bottom: -6.5px; transform: rotate(45deg);
-            width: 12px; height: 12px; background: rgba(15, 17, 26, 0.95);
-            border-bottom: inherit; border-right: inherit;
+            width: 12px; height: 12px; background: rgba(15, 17, 26, 0.95); border-bottom: inherit; border-right: inherit;
         }
 
         .tooltip-step-1 { border: 1px solid #10b981; box-shadow: 0 0 20px rgba(16, 185, 129, 0.15); }
@@ -135,8 +196,7 @@
 
         .tutorial-ring {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            width: 100%; height: 100%; padding: 15px; border-radius: 12px;
-            opacity: 0; pointer-events: none; z-index: 1;
+            width: 100%; height: 100%; padding: 15px; border-radius: 12px; opacity: 0; pointer-events: none; z-index: 1;
         }
         .ring-1 { border: 2px solid #10b981; }
         .ring-2 { border: 2px solid #d946ef; }
@@ -160,7 +220,7 @@
         .os-window.active { border-color: #d946ef; box-shadow: 0 25px 60px rgba(0,0,0,0.8), 0 0 30px rgba(217, 70, 239, 0.15); }
         
         .os-window.maximized {
-            top: 32px !important; left: 0 !important; width: 100% !important; height: calc(100% - 32px) !important;
+            top: 0 !important; left: 0 !important; width: 100% !important; height: 100% !important;
             border-radius: 0; transition: all 0.3s ease;
         }
 
@@ -183,27 +243,30 @@
         .cursor { display: inline-block; width: 8px; height: 16px; background: #d946ef; animation: blink 1s infinite; vertical-align: middle; margin-left: 4px; }
         @keyframes blink { 50% { opacity: 0; } }
 
-        .tool-content { padding: 35px 30px; border-radius: 0 0 9px 9px;}
-        .app-header { text-align: center; margin-bottom: 30px; }
-        .app-header h2 { font-size: 20px; color: #e2e8f0; margin-bottom: 8px; font-weight: 700; }
-        .app-header p { font-size: 12px; color: #8b5cf6; font-family: 'Fira Code', monospace; }
-        
-        .input-group { margin-bottom: 22px; position: relative; }
-        .input-group label { display: block; font-size: 11px; color: #a855f7; margin-bottom: 8px; font-family: 'Fira Code', monospace; text-transform: uppercase; letter-spacing: 1px; }
-        .input-group input {
-            width: 100%; background: rgba(0,0,0,0.5); border: 1px solid rgba(168, 85, 247, 0.3);
-            border-radius: 6px; padding: 14px 15px; color: #fff; font-family: 'Inter', sans-serif; font-size: 15px; outline: none; transition: 0.3s;
-        }
-        .input-group input:focus { border-color: #d946ef; background: rgba(217, 70, 239, 0.05); box-shadow: 0 0 15px rgba(217, 70, 239, 0.1); }
-        
-        .btn-claim {
-            width: 100%; background: linear-gradient(135deg, #7c3aed, #c026d3);
-            color: #fff; border: none; padding: 15px; border-radius: 6px;
-            font-family: 'Fira Code', monospace; font-size: 14px; font-weight: bold;
-            cursor: pointer; transition: 0.3s; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px;
-        }
-        .btn-claim:hover { box-shadow: 0 8px 25px rgba(192, 38, 211, 0.4); transform: translateY(-2px); }
+        .guide-list { list-style: none; padding: 0; margin-top: 15px; color: #cbd5e1; font-size: 13px; line-height: 2; }
+        .guide-list li::before { content: '>'; color: #a855f7; margin-right: 8px; font-weight: bold; }
 
+        /* --- Glassmorphism Terminal UI --- */
+        .terminal-bg {
+            background: rgba(5, 6, 8, 0.35); /* Semi-transparent base */
+            backdrop-filter: blur(15px); /* Glass effect */
+            -webkit-backdrop-filter: blur(15px);
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.6); /* Inner shadow for depth */
+            padding: 20px; font-family: 'Fira Code', monospace;
+            font-size: 13px; color: #e2e8f0; height: 100%; overflow-y: auto; border-radius: 0 0 9px 9px;
+            cursor: text; display: flex; flex-direction: column; line-height: 1.6;
+        }
+        .term-out { color: #94a3b8; }
+        .term-user { color: #10b981; font-weight: bold; }
+        .term-host { color: #3b82f6; font-weight: bold; }
+        .term-prompt-line { display: flex; align-items: center; margin-top: 5px; }
+        .term-input-field {
+            background: transparent; border: none; outline: none; color: #fff;
+            font-family: 'Fira Code', monospace; font-size: 13px; flex-grow: 1; margin-left: 8px;
+        }
+        .term-success { color: #10b981; }
+
+        /* --- Certificate Viewer --- */
         .cert-viewer-content {
             background: #ffffff; color: #111827; padding: 40px; text-align: center;
             border-radius: 0 0 9px 9px; position: relative; overflow: hidden; height: calc(100% - 38px);
@@ -215,9 +278,6 @@
         }
         .cert-layer { position: relative; z-index: 10; width: 100%; }
         #qrcode-container canvas, #qrcode-container img { width: 100px !important; height: 100px !important; }
-        
-        .guide-list { list-style: none; padding: 0; margin-top: 15px; color: #cbd5e1; font-size: 13px; line-height: 2; }
-        .guide-list li::before { content: '>'; color: #a855f7; margin-right: 8px; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -228,18 +288,72 @@
         <div class="bg-noise"></div>
     </div>
 
-    <div id="desktop">
-        <div class="taskbar">
-            <span>OWASP // WebOS Environment</span>
-            <span class="clock" id="clock">00:00</span>
+    <div class="taskbar">
+        <div class="taskbar-left">
+            <div class="start-btn" id="start-btn" onclick="toggleStartMenu(event)">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                START
+            </div>
+            <div class="taskbar-divider"></div>
+            <span class="taskbar-title">OWASP // WebOS Environment</span>
         </div>
 
+        <div class="taskbar-right">
+            <div class="sys-tray-icons">
+                <svg class="sys-icon" viewBox="0 0 24 24" title="Network: Connected">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+                <svg class="sys-icon" viewBox="0 0 24 24" title="Volume: 100%">
+                    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                    <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+                </svg>
+            </div>
+            
+            <div class="datetime-container" title="System Time">
+                <span class="time-display" id="clock">00:00</span>
+                <span class="date-display" id="date">JAN 01, 2026</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="start-menu" id="start-menu">
+        <div class="menu-header">
+            <div class="menu-avatar">OS</div>
+            <div class="menu-user-info">
+                <span class="menu-user-name" id="menu-user">GUEST_USER</span>
+                <span class="menu-user-role">Local Workspace</span>
+            </div>
+        </div>
+        <div class="menu-items">
+            <div class="menu-item" onclick="openWindow('guide-win'); toggleStartMenu();">
+                <svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                System Documentation
+            </div>
+            <div class="menu-item" onclick="alert('Terminal access requires elevated privileges.'); toggleStartMenu();">
+                <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+                Root Terminal
+            </div>
+            <div class="menu-divider"></div>
+            <div class="menu-item" onclick="alert('System preferences locked.'); toggleStartMenu();">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                Environment Settings
+            </div>
+        </div>
+        <div class="menu-footer">
+            <div class="power-btn" onclick="alert('Session closed.'); window.location.reload();">
+                <svg viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+            </div>
+        </div>
+    </div>
+
+    <div id="desktop">
         <div class="metrics-panel" id="metrics-panel">
             <div class="metrics-header">
                 CONTRIBUTOR TELEMETRY
                 <span class="status-badge" id="telemetry-status">STANDBY</span>
             </div>
-            
             <div class="metric-row">
                 <div class="metric-label"><span>Commits</span> <span id="val-commits">--</span></div>
                 <div class="metric-bar-bg"><div class="metric-bar-fill" id="bar-commits" style="background:#3b82f6;"></div></div>
@@ -252,13 +366,11 @@
                 <div class="metric-label"><span>Issues</span> <span id="val-issues">--</span></div>
                 <div class="metric-bar-bg"><div class="metric-bar-fill" id="bar-issues" style="background:#f59e0b;"></div></div>
             </div>
-            
             <div class="metric-row" style="margin-top: 15px; display: flex; flex-direction: column; gap: 5px;">
                 <div class="metric-label" style="color: #10b981;"><span>Lines Added</span> <span id="val-added">--</span></div>
                 <div class="metric-label" style="color: #ef4444;"><span>Lines Removed</span> <span id="val-removed">--</span></div>
                 <div class="metric-label" style="color: #60a5fa;"><span>Projects Interacted</span> <span id="val-projects">--</span></div>
             </div>
-
             <div class="tier-progress">
                 <div class="tier-label" id="tier-path">Next Tier Target: <span>AWAITING IDENTITY</span></div>
                 <div class="metric-bar-bg" style="height: 10px; border-radius: 5px;">
@@ -271,47 +383,30 @@
         <div class="icon-grid">
             <div class="icon-wrapper">
                 <div class="desktop-icon" ondblclick="openWindow('guide-win')">
-                    <svg class="svg-icon" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                    </svg>
+                    <svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                     <span>System_Guide<br>.txt</span>
                 </div>
             </div>
-
             <div class="icon-wrapper">
                 <div class="tutorial-ring ring-1" id="ring-letter"></div>
                 <div class="tutorial-tooltip tooltip-step-1 left-arrow" id="tooltip-1">
                     <div class="tooltip-title">STEP 1: INITIALIZE</div>
                     <div class="tooltip-text">Double-click the letter icon to read your appreciation message.</div>
                 </div>
-                
                 <div class="desktop-icon" ondblclick="openWindow('letter-win'); nextTutorialStep();">
-                    <svg class="svg-icon" viewBox="0 0 24 24">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <polyline points="10 9 9 9 8 9"></polyline>
-                    </svg>
+                    <svg class="svg-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                     <span>Letter_of_<br>Appreciation</span>
                 </div>
             </div>
-            
             <div class="icon-wrapper">
                 <div class="tutorial-ring ring-2" id="ring-tool"></div>
                 <div class="tutorial-tooltip tooltip-step-2 left-arrow" id="tooltip-2">
                     <div class="tooltip-title">STEP 2: PROVISION</div>
-                    <div class="tooltip-text">Execution authorized. Double-click the provisioning tool to claim your credential.</div>
+                    <div class="tooltip-text">Execution authorized. Double-click the provisioning terminal.</div>
                 </div>
-
-                <div class="desktop-icon" ondblclick="openWindow('tool-win')">
-                    <svg class="svg-icon" viewBox="0 0 24 24">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                        <path d="M9 12l2 2 4-4"></path>
-                    </svg>
-                    <span>CRT_Gen.exe</span>
+                <div class="desktop-icon" ondblclick="openWindow('tool-win'); initTerminalFlow();">
+                    <svg class="svg-icon" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"></polyline><line x1="12" y1="19" x2="20" y2="19"></line></svg>
+                    <span>CRT_Gen.sh</span>
                 </div>
             </div>
         </div>
@@ -329,14 +424,13 @@
             <div class="text-editor-content">
                 <h3 style="color: #10b981; font-size: 18px; margin-bottom: 10px;">> WELCOME TO OWASP OS Workspace</h3>
                 <p>This secure environment is designed for verified contributors to provision and view their digital recognition credentials.</p>
-                
                 <h4 style="color: #d946ef; margin-top: 25px; margin-bottom: 5px; font-size: 14px;">[ SYSTEM WORKFLOW ]</h4>
                 <ul class="guide-list">
                     <li>Read your initial briefing in <b>Letter_of_Appreciation</b>.</li>
-                    <li>Execute <b>CRT_Gen.exe</b> to initialize your identity request.</li>
-                    <li>Submit your name. The system will redirect you to GitHub to open an official issue.</li>
-                    <li>Once approved by the team, you will be provided a secure link with your JWT parameter.</li>
-                    <li>Returning to this OS with your parameter will activate your <span class="highlight">Telemetry</span> and decrypt your <span class="highlight">Verifiable Certificate</span>.</li>
+                    <li>Execute <b>CRT_Gen.sh</b> to initialize your identity request via terminal.</li>
+                    <li>Provide your First and Last name into the terminal prompt.</li>
+                    <li>The system will redirect you to GitHub to open an official issue.</li>
+                    <li>Once approved by the team, you will be provided a secure link.</li>
                 </ul>
                 <br>
                 <p style="color: #64748b; font-size: 12px;">> Status: System ready. Awaiting user input...</p>
@@ -359,42 +453,30 @@
             </div>
         </div>
 
-        <div class="os-window" id="tool-win" style="top: 35%; left: 40%; width: 450px;">
+        <div class="os-window" id="tool-win" style="top: 20%; left: 35%; width: 550px; height: 350px;">
             <div class="title-bar" onmousedown="startDrag(event, 'tool-win')">
                 <div class="window-controls">
                     <div class="control-btn close-btn" onclick="closeWindow('tool-win')"></div>
                     <div class="control-btn min-btn"></div>
                     <div class="control-btn max-btn"></div>
                 </div>
-                <div class="window-title">OWASP CRT Provisioning Engine</div>
+                <div class="window-title">root@owasp-os: ~</div>
                 <div style="width: 40px;"></div>
             </div>
-            <div class="tool-content">
-                <div class="app-header">
-                    <h2>Identity Provisioning</h2>
-                    <p>Enter data to generate verifiable credential</p>
+            <div class="terminal-bg" onclick="document.getElementById('term-input').focus()">
+                <div id="term-output"></div>
+                <div class="term-prompt-line" id="term-input-wrapper" style="display: none;">
+                    <span id="term-prompt" style="color: #d946ef;"></span>
+                    <input type="text" id="term-input" class="term-input-field" autocomplete="off" onkeydown="handleTerminalInput(event)">
                 </div>
-                <form onsubmit="generateIssueLink(event)">
-                    <div class="input-group">
-                        <label>First Name</label>
-                        <input type="text" id="fname-input" required autocomplete="off">
-                    </div>
-                    <div class="input-group">
-                        <label>Last Name</label>
-                        <input type="text" id="lname-input" required autocomplete="off">
-                    </div>
-                    <button type="submit" class="btn-claim">Initialize Certificate</button>
-                </form>
             </div>
         </div>
 
         <div class="os-window" id="cert-win" style="top: 10%; left: 20%; width: 800px;">
-            
             <div class="tutorial-tooltip tooltip-step-3 bottom-arrow" id="tooltip-max" style="top: -70px; left: 10px;">
                 <div class="tooltip-title">HINT: FULLSCREEN</div>
                 <div class="tooltip-text">Click the green button to maximize the certificate for a better view.</div>
             </div>
-
             <div class="title-bar" onmousedown="startDrag(event, 'cert-win')">
                 <div class="window-controls">
                     <div class="control-btn close-btn" onclick="closeWindow('cert-win')"></div>
@@ -409,42 +491,52 @@
                 <div class="cert-layer">
                     <h1 style="font-size: 32px; font-weight: 900; color: #1f2937; margin-bottom: 5px;">Certificate of Recognition</h1>
                     <p style="color: #4b5563; font-size: 14px; margin-bottom: 20px;">This digital credential validates the contributions of</p>
-                    
                     <h2 id="real-name" style="font-size: 42px; font-family: serif; color: #1d4ed8; margin: 10px 0;">Name</h2>
                     <p id="user-name" style="font-size: 16px; color: #6b7280; font-family: monospace; border-bottom: 2px solid #e5e7eb; display: inline-block; padding-bottom: 10px; margin-bottom: 20px;">@username</p>
-                    
                     <p style="font-size: 15px; color: #374151; margin-bottom: 25px; line-height: 1.6;">
                         Has been officially recognized as a vital contributor to the <br>
                         <strong>Open Web Application Security Project (OWASP)</strong>.
                     </p>
-
                     <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 15px; border-radius: 8px; margin-bottom: 25px; display: inline-block; min-width: 200px;">
                         <p style="font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 5px;">Achievement Tier</p>
                         <p id="tier-text" style="font-size: 28px; font-weight: bold; text-transform: uppercase; margin: 0;"></p>
                     </div>
-                    
                     <div style="display: flex; flex-direction: column; align-items: center;">
                         <div id="qrcode-container" style="padding: 8px; background: white; border: 1px solid #e5e7eb; border-radius: 8px; display: inline-block;"></div>
                         <p style="font-size: 10px; color: #9ca3af; font-family: monospace; margin-top: 8px;">Scan to Verify Authentic Credential</p>
                     </div>
-
                     <div id="error-display" style="display: none; background: #fef2f2; border: 1px solid #f87171; color: #dc2626; padding: 15px; border-radius: 8px; font-weight: bold; margin-top: 20px;"></div>
                 </div>
             </div>
         </div>
-
     </div>
 
     <script>
-        // Clock
+        // Clock & Date
         setInterval(() => {
             const d = new Date();
-            document.getElementById('clock').innerText = 
-                d.getHours().toString().padStart(2, '0') + ':' + 
-                d.getMinutes().toString().padStart(2, '0');
+            document.getElementById('clock').innerText = d.getHours().toString().padStart(2, '0') + ':' + d.getMinutes().toString().padStart(2, '0');
+            const options = { month: 'short', day: 'numeric', year: 'numeric' };
+            document.getElementById('date').innerText = d.toLocaleDateString('en-US', options).toUpperCase();
         }, 1000);
 
-        // --- IDM-Style Tooltip Logic ---
+        function toggleStartMenu(e) {
+            if(e) e.stopPropagation();
+            const menu = document.getElementById('start-menu');
+            const btn = document.getElementById('start-btn');
+            menu.classList.toggle('show');
+            btn.classList.toggle('active');
+        }
+
+        document.addEventListener('click', function(event) {
+            const menu = document.getElementById('start-menu');
+            const btn = document.getElementById('start-btn');
+            if (!menu.contains(event.target) && !btn.contains(event.target)) {
+                menu.classList.remove('show');
+                btn.classList.remove('active');
+            }
+        });
+
         const tooltip1 = document.getElementById('tooltip-1');
         const tooltip2 = document.getElementById('tooltip-2');
         const ringLetter = document.getElementById('ring-letter');
@@ -457,7 +549,6 @@
                 tooltip1.style.opacity = '0';
                 tooltip1.style.visibility = 'hidden';
                 ringLetter.classList.remove('active');
-                
                 setTimeout(() => {
                     tooltip2.style.opacity = '1';
                     tooltip2.style.visibility = 'visible';
@@ -466,14 +557,12 @@
             }
         }
 
-        // --- Window Management ---
         let highestZ = 100;
         
         function openWindow(id) {
             const win = document.getElementById(id);
             win.style.display = 'flex';
             win.style.zIndex = ++highestZ;
-            
             document.querySelectorAll('.os-window').forEach(w => w.classList.remove('active'));
             win.classList.add('active');
 
@@ -482,54 +571,40 @@
                 tooltip2.style.visibility = 'hidden';
                 ringTool.classList.remove('active');
             }
-
             if(id === 'letter-win' && !letterTyped) {
                 startTypewriter();
             }
         }
 
-        function closeWindow(id) {
-            document.getElementById(id).style.display = 'none';
-        }
+        function closeWindow(id) { document.getElementById(id).style.display = 'none'; }
 
         function toggleMaximize(id) {
             const win = document.getElementById(id);
             win.classList.toggle('maximized');
-            
             if (id === 'cert-win') {
                 const tooltipMax = document.getElementById('tooltip-max');
                 const maxBtn = document.getElementById('max-btn-cert');
-                if(tooltipMax) {
-                    tooltipMax.style.opacity = '0';
-                    tooltipMax.style.visibility = 'hidden';
-                }
-                if(maxBtn) {
-                    maxBtn.classList.remove('pulse-green');
-                }
+                if(tooltipMax) { tooltipMax.style.opacity = '0'; tooltipMax.style.visibility = 'hidden'; }
+                if(maxBtn) { maxBtn.classList.remove('pulse-green'); }
             }
         }
 
         function startDrag(e, id) {
             const win = document.getElementById(id);
             if (win.classList.contains('maximized')) return;
-
             win.style.zIndex = ++highestZ;
             document.querySelectorAll('.os-window').forEach(w => w.classList.remove('active'));
             win.classList.add('active');
-
             let startX = e.clientX, startY = e.clientY;
             let startLeft = win.offsetLeft, startTop = win.offsetTop;
-
             function drag(e) {
                 win.style.left = (startLeft + e.clientX - startX) + 'px';
                 win.style.top = (startTop + e.clientY - startY) + 'px';
             }
-
             function stopDrag() {
                 document.removeEventListener('mousemove', drag);
                 document.removeEventListener('mouseup', stopDrag);
             }
-
             document.addEventListener('mousemove', drag);
             document.addEventListener('mouseup', stopDrag);
         }
@@ -542,7 +617,70 @@
             });
         });
 
-        // --- Typewriter Effect ---
+        // --- Terminal Logic ---
+        let termState = 0; 
+        let termFirstName = "";
+        let termLastName = "";
+        
+        function initTerminalFlow() {
+            if (termState > 0) return; 
+            
+            const out = document.getElementById('term-output');
+            const inputWrapper = document.getElementById('term-input-wrapper');
+            const termInput = document.getElementById('term-input');
+            const prompt = document.getElementById('term-prompt');
+            
+            out.innerHTML = `<span class="term-user">root</span><span style="color:#fff;">@</span><span class="term-host">owasp-os</span>:~$ ./crt_provision.sh<br>`;
+            
+            setTimeout(() => { out.innerHTML += `<span class="term-out">[+] Initializing secure identity provisioning...</span><br>`; }, 600);
+            setTimeout(() => { out.innerHTML += `<span class="term-out">[+] Connecting to OWASP verification matrix... OK</span><br><br>`; }, 1200);
+            
+            setTimeout(() => {
+                inputWrapper.style.display = 'flex';
+                prompt.innerText = "Enter Target First Name: ";
+                termInput.focus();
+                termState = 1;
+            }, 1800);
+        }
+
+        function handleTerminalInput(e) {
+            if (e.key === 'Enter') {
+                const val = e.target.value.trim();
+                const out = document.getElementById('term-output');
+                const prompt = document.getElementById('term-prompt');
+                
+                if (termState === 1) {
+                    if(!val) return;
+                    termFirstName = val;
+                    out.innerHTML += `<span style="color:#d946ef;">Enter Target First Name: </span>${val}<br>`;
+                    e.target.value = '';
+                    prompt.innerText = "Enter Target Last Name: ";
+                    termState = 2;
+                } 
+                else if (termState === 2) {
+                    if(!val) return;
+                    termLastName = val;
+                    out.innerHTML += `<span style="color:#d946ef;">Enter Target Last Name: </span>${val}<br><br>`;
+                    out.innerHTML += `<span class="term-success">[✓] Identity parsed successfully.</span><br>`;
+                    out.innerHTML += `<span class="term-out">[*] Generating repository issue request...</span><br>`;
+                    e.target.value = '';
+                    document.getElementById('term-input-wrapper').style.display = 'none';
+                    termState = 3;
+                    
+                    setTimeout(() => {
+                        const fullName = termFirstName + " " + termLastName;
+                        const repoOwner = "Galaxy-sc"; 
+                        const repoName = "test"; 
+                        const issueTitle = encodeURIComponent("Cert Request: Generate My Certificate");
+                        const issueBody = encodeURIComponent(`لطفا مدرک مشارکت من در پروژه‌های OWASP را صادر کنید.\n\nFullName: ${fullName}`);
+                        const issueUrl = `https://github.com/${repoOwner}/${repoName}/issues/new?title=${issueTitle}&body=${issueBody}`;
+                        window.open(issueUrl, '_blank');
+                    }, 1500);
+                }
+            }
+        }
+
+        // --- Original Letter Writer ---
         let letterTyped = false;
         const letterLines = [
             "Initiating secure connection...",
@@ -551,7 +689,7 @@
             "Through your research and code, you have strengthened our collective security.",
             "The <span class='owasp-text'>OWASP Foundation</span> recognizes your vital impact.",
             "<br><span style='color:#64748b;'>-- OWASP-CRT Project Leader</span>",
-            "<br>> Execute CRT_Gen.exe to claim your verifiable credential."
+            "<br>> Execute CRT_Gen.sh to claim your verifiable credential."
         ];
 
         function startTypewriter() {
@@ -561,25 +699,18 @@
             cursor.style.display = 'inline-block';
             container.innerHTML = '';
             
-            let currentLine = 0;
-            let currentChar = 0;
-            let isTag = false;
-            let tagBuffer = '';
+            let currentLine = 0; let currentChar = 0; let isTag = false; let tagBuffer = '';
 
             function type() {
                 if (currentLine < letterLines.length) {
                     let lineStr = letterLines[currentLine];
-                    
                     if (currentChar < lineStr.length) {
                         let char = lineStr.charAt(currentChar);
                         if (char === '<') isTag = true;
-                        
                         if (isTag) {
                             tagBuffer += char;
                             if (char === '>') {
-                                isTag = false;
-                                container.insertAdjacentHTML('beforeend', tagBuffer);
-                                tagBuffer = '';
+                                isTag = false; container.insertAdjacentHTML('beforeend', tagBuffer); tagBuffer = '';
                             }
                         } else {
                             container.insertAdjacentHTML('beforeend', char);
@@ -588,8 +719,7 @@
                         setTimeout(type, isTag ? 0 : 30);
                     } else {
                         container.insertAdjacentHTML('beforeend', '<br>');
-                        currentLine++;
-                        currentChar = 0;
+                        currentLine++; currentChar = 0;
                         setTimeout(type, 500);
                     }
                 }
@@ -597,45 +727,26 @@
             setTimeout(type, 500);
         }
 
-        // --- Telemetry Activation Logic ---
+        // --- Telemetry Activation ---
         function activateTelemetry(tier) {
             const badge = document.getElementById('telemetry-status');
-            badge.innerText = 'CONNECTED';
-            badge.classList.add('active');
+            badge.innerText = 'CONNECTED'; badge.classList.add('active');
 
-            setTimeout(() => {
-                document.getElementById('val-commits').innerText = '1,042';
-                document.getElementById('bar-commits').style.width = '85%';
-            }, 500);
-
-            setTimeout(() => {
-                document.getElementById('val-prs').innerText = '64';
-                document.getElementById('bar-prs').style.width = '60%';
-            }, 800);
-
-            setTimeout(() => {
-                document.getElementById('val-issues').innerText = '112';
-                document.getElementById('bar-issues').style.width = '75%';
-            }, 1100);
-
-            setTimeout(() => {
-                document.getElementById('val-added').innerText = '+34,590';
-                document.getElementById('val-removed').innerText = '-12,230';
-                document.getElementById('val-projects').innerText = '4 Projects';
+            setTimeout(() => { document.getElementById('val-commits').innerText = '1,042'; document.getElementById('bar-commits').style.width = '85%'; }, 500);
+            setTimeout(() => { document.getElementById('val-prs').innerText = '64'; document.getElementById('bar-prs').style.width = '60%'; }, 800);
+            setTimeout(() => { document.getElementById('val-issues').innerText = '112'; document.getElementById('bar-issues').style.width = '75%'; }, 1100);
+            setTimeout(() => { 
+                document.getElementById('val-added').innerText = '+34,590'; 
+                document.getElementById('val-removed').innerText = '-12,230'; 
+                document.getElementById('val-projects').innerText = '4 Projects'; 
             }, 1500);
 
-            let nextTier = 'SILVER';
-            let progressPct = '65%';
-            let fillPct = '65%';
+            let nextTier = 'SILVER'; let progressPct = '65%'; let fillPct = '65%';
             let currentTier = (tier || "").toUpperCase();
 
-            if(currentTier === 'BRONZE') {
-                nextTier = 'SILVER'; progressPct = '68%'; fillPct = '68%';
-            } else if(currentTier === 'SILVER') {
-                nextTier = 'GOLD'; progressPct = '82%'; fillPct = '82%';
-            } else if(currentTier === 'GOLD') {
-                nextTier = 'MAX LEVEL'; progressPct = '100% Achieved'; fillPct = '100%';
-            }
+            if(currentTier === 'BRONZE') { nextTier = 'SILVER'; progressPct = '68%'; fillPct = '68%'; } 
+            else if(currentTier === 'SILVER') { nextTier = 'GOLD'; progressPct = '82%'; fillPct = '82%'; } 
+            else if(currentTier === 'GOLD') { nextTier = 'MAX LEVEL'; progressPct = '100% Achieved'; fillPct = '100%'; }
 
             setTimeout(() => {
                 document.getElementById('tier-path').innerHTML = `Next Tier Target: <span>${nextTier}</span>`;
@@ -644,7 +755,7 @@
             }, 2000);
         }
 
-        // --- Certificate Logic & Issue Redirect ---
+        // --- Certificate Verification ---
         const PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
 MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoEQfLkoDz9yg0jXxDfBu
 GXqskmCW3/ag6n8PxqDoHr6kvwjMR/sSl5/lOQEkFizEfCZSlwRQayuEyuSODKCg
@@ -655,43 +766,23 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
 8wIDAQAB
 -----END PUBLIC KEY-----`;
 
-        function generateIssueLink(event) {
-            event.preventDefault();
-            const fname = document.getElementById('fname-input').value.trim();
-            const lname = document.getElementById('lname-input').value.trim();
-            if (!fname || !lname) { alert("لطفاً مشخصات را کامل کنید!"); return; }
-            const fullName = fname + " " + lname;
-            const repoOwner = "Galaxy-sc"; 
-            const repoName = "test"; 
-            const issueTitle = encodeURIComponent("Cert Request: Generate My Certificate");
-            const issueBody = encodeURIComponent(`لطفا مدرک مشارکت من در پروژه‌های OWASP را صادر کنید.\n\nFullName: ${fullName}`);
-            const issueUrl = `https://github.com/${repoOwner}/${repoName}/issues/new?title=${issueTitle}&body=${issueBody}`;
-            window.open(issueUrl, '_blank');
-        }
-
         window.onload = function() {
             const params = new URLSearchParams(window.location.search);
             const safeToken = params.get('cert');
 
             if (safeToken) {
-                tooltip1.style.opacity = '0';
-                tooltip1.style.visibility = 'hidden';
-                ringLetter.classList.remove('active');
-
+                tooltip1.style.opacity = '0'; tooltip1.style.visibility = 'hidden'; ringLetter.classList.remove('active');
                 openWindow('cert-win');
 
                 setTimeout(() => {
                     const tooltipMax = document.getElementById('tooltip-max');
                     const maxBtn = document.getElementById('max-btn-cert');
                     if(tooltipMax && maxBtn) {
-                        tooltipMax.style.opacity = '1';
-                        tooltipMax.style.visibility = 'visible';
+                        tooltipMax.style.opacity = '1'; tooltipMax.style.visibility = 'visible';
                         maxBtn.classList.add('pulse-green');
                         setTimeout(() => {
                             if (tooltipMax.style.opacity === '1') {
-                                tooltipMax.style.opacity = '0';
-                                tooltipMax.style.visibility = 'hidden';
-                                maxBtn.classList.remove('pulse-green');
+                                tooltipMax.style.opacity = '0'; tooltipMax.style.visibility = 'hidden'; maxBtn.classList.remove('pulse-green');
                             }
                         }, 6000);
                     }
@@ -709,6 +800,7 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
                             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
                         }).join('')));
 
+                        document.getElementById('menu-user').innerText = payload.user.toUpperCase();
                         document.getElementById('real-name').innerText = payload.real_name || payload.user;
                         document.getElementById('user-name').innerText = "@" + payload.user;
                         
@@ -718,33 +810,23 @@ qIfjbmearnc1q/NomLL0yOEDpTcvJ67Bbl3OjKSJQSGz6h0fHo+/Wr52asikibWY
 
                         document.getElementById('qrcode-container').innerHTML = ""; 
                         new QRCode(document.getElementById("qrcode-container"), {
-                            text: window.location.href,
-                            width: 100, height: 100,
-                            colorDark : "#111827", colorLight : "#ffffff",
-                            correctLevel : QRCode.CorrectLevel.L
+                            text: window.location.href, width: 100, height: 100,
+                            colorDark : "#111827", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.L
                         });
 
                         activateTelemetry(payload.tier || 'BRONZE');
-
                     } else {
                         const err = document.getElementById('error-display');
-                        err.style.display = 'block';
-                        err.innerText = "❌ امضا نامعتبر است! این مدرک جعل شده است.";
+                        err.style.display = 'block'; err.innerText = "❌ امضا نامعتبر است! این مدرک جعل شده است.";
                     }
                 } catch (e) {
                     const err = document.getElementById('error-display');
-                    err.style.display = 'block';
-                    err.innerText = "❌ ساختار لینک دستکاری شده است.";
+                    err.style.display = 'block'; err.innerText = "❌ ساختار لینک دستکاری شده است.";
                 }
             } else {
-                // اگر کاربر بدون مدرک آمد، پنجره راهنما را باز کن
                 openWindow('guide-win');
-                
-                // و تولتیپ آموزشی را با کمی تاخیر نمایش بده
                 setTimeout(() => {
-                    tooltip1.style.opacity = '1';
-                    tooltip1.style.visibility = 'visible';
-                    ringLetter.classList.add('active');
+                    tooltip1.style.opacity = '1'; tooltip1.style.visibility = 'visible'; ringLetter.classList.add('active');
                 }, 1500);
             }
         };
