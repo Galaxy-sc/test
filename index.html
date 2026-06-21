@@ -192,9 +192,8 @@
             padding: 15px 20px; border-top: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.2);
             display: flex; justify-content: flex-end;
         }
-        .power-btn { cursor: pointer; padding: 6px; border-radius: 8px; transition: 0.2s; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); }
+        .power-btn { cursor: pointer; padding: 6px; border-radius: 8px; transition: 0.2s; }
         .power-btn svg { width: 16px; height: 16px; stroke: #ef4444; stroke-width: 2; fill: none; display: block; }
-        .power-btn:hover { background: #ef4444; }
         .power-btn:hover svg { stroke: white; }
 
         /* --- Desktop Area --- */
@@ -381,6 +380,7 @@
                     </div>
                 </div>
             </div> -->
+            
         </div>
 
         <div class="dock-container">
@@ -413,6 +413,9 @@
                 <svg viewBox="0 0 24 24" title="Volume: 100%">
                     <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
                 </svg>
+                <div class="power-btn" onclick="alert('Session closed.'); window.location.reload();" title="Log Out">
+                        <svg viewBox="0 0 24 24"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>
+                </div>
             </div>
             <div class="clock-widget">
                 <span class="clock-time" id="clock">00:00</span>
