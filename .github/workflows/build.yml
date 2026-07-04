@@ -1,4 +1,4 @@
-name: Build Jailbreak IPA
+name: Build & Inject Frida (Non-Jailbroken)
 
 on:
   push:
@@ -6,24 +6,28 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-and-inject:
     runs-on: macos-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Tools (XcodeGen & ldid)
+      - name: Install Build Tools
         run: |
           brew install xcodegen
-          brew install ldid
+          
+          # دانلود و نصب ابزار insert_dylib برای تزریق فریدا به باینری
+          git clone https://github.com/Tyilo/insert_dylib
+          cd insert_dylib
+          xcodebuild clean build
+          sudo cp build/Release/insert_dylib /usr/local/bin/
 
       - name: Generate Xcode Project
         run: xcodegen generate
 
       - name: Build Application
         run: |
-          # کامپایل پروژه و ریختن خروجی در پوشه build
           xcodebuild clean build \
             -project HelloWorld.xcodeproj \
             -scheme HelloWorld \
@@ -33,21 +37,32 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY=""
 
-      - name: Pseudo-Sign & Package IPA
+      - name: Download & Inject Frida Gadget
+        run: |
+          APP_PATH="build/Release-iphoneos/HelloWorld.app"
+          mkdir -p "$APP_PATH/Frameworks"
+          
+          # دانلود نسخه یونیورسال Frida Gadget (مخصوص iOS)
+          # می‌توانید نسخه را به جدیدترین ورژن فریدا که روی سیستم خودتان نصب دارید تغییر دهید
+          FRIDA_VERSION="16.2.1" 
+          curl -L -o frida-gadget.xz "https://github.com/frida/frida/releases/download/${FRIDA_VERSION}/frida-gadget-${FRIDA_VERSION}-ios-universal.dylib.xz"
+          
+          # استخراج فایل از حالت فشرده
+          xz -d frida-gadget.xz
+          mv frida-gadget "$APP_PATH/Frameworks/FridaGadget.dylib"
+          
+          # تزریق کتابخانه به داخل باینری اصلی
+          insert_dylib @executable_path/Frameworks/FridaGadget.dylib "$APP_PATH/HelloWorld" --all-yes --inplace
+
+      - name: Package IPA (Unsigned)
         run: |
           mkdir -p build/Payload
-          # انتقال فایل برنامه به پوشه استاندارد Payload
           mv build/Release-iphoneos/HelloWorld.app build/Payload/
-          
-          # اعمال امضای جعلی مخصوص دیوایس‌های جیلبریک شده با ldid
-          ldid -S build/Payload/HelloWorld.app/HelloWorld
-          
-          # فشرده‌سازی به صورت فایل IPA
           cd build
-          zip -qr HelloWorld.ipa Payload
+          zip -qr HelloWorld-Frida.ipa Payload
 
-      - name: Upload IPA for Download
+      - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
-          name: HelloWorld-Jailbreak
-          path: build/HelloWorld.ipa
+          name: HelloWorld-Frida-Injected
+          path: build/HelloWorld-Frida.ipa
