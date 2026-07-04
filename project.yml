@@ -1,8 +1,8 @@
-name: HelloWorld
+name: VulnApp
 options:
   bundleIdPrefix: com.witcher
 targets:
-  HelloWorld:
+  VulnApp:
     type: application
     platform: iOS
     deploymentTarget: "14.0"
@@ -11,7 +11,8 @@ targets:
     info:
       path: Info.plist
     settings:
-      CODE_SIGNING_REQUIRED: NO
       CODE_SIGNING_ALLOWED: NO
+      CODE_SIGNING_REQUIRED: NO
       CODE_SIGN_IDENTITY: ""
-      ENTITLEMENTS_REQUIRED: NO
+      # این تنظیمات برای جلوگیری از خطای Validation ضروری است
+      INFOPLIST_FILE: Info.plist
