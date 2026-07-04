@@ -3,23 +3,16 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key>
-    <string>$(EXECUTABLE_NAME)</string>
+    <string>VulnApp</string>
     <key>CFBundleIdentifier</key>
-    <string>com.witcher.helloworld</string>
+    <string>com.witcher.VulnApp</string>
     <key>CFBundleName</key>
-    <string>HelloWorld</string>
+    <string>VulnApp</string>
     <key>CFBundleShortVersionString</key>
     <string>1.0</string>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
-    <key>UIApplicationSceneManifest</key>
-    <dict>
-        <key>UIApplicationSupportsMultipleScenes</key>
-        <false/>
-    </dict>
-    <key>UILaunchScreen</key>
-    <dict/>
 </dict>
 </plist>
