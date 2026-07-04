@@ -1,0 +1,17 @@
+name: HelloWorld
+options:
+  bundleIdPrefix: com.witcher
+targets:
+  HelloWorld:
+    type: application
+    platform: iOS
+    deploymentTarget: "14.0"
+    sources:
+      - App.swift
+    info:
+      path: Info.plist
+    settings:
+      CODE_SIGNING_REQUIRED: NO
+      CODE_SIGNING_ALLOWED: NO
+      CODE_SIGN_IDENTITY: ""
+      ENTITLEMENTS_REQUIRED: NO
