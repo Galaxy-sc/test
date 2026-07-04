@@ -1,4 +1,4 @@
-name: Build & Inject Frida (Non-Jailbroken)
+name: Build Vuln Lab IPA
 
 on:
   push:
@@ -6,63 +6,32 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-inject:
+  build:
     runs-on: macos-latest
-
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Install Build Tools
+      - uses: actions/checkout@v4
+      - name: Build
         run: |
-          brew install xcodegen
-          
-          # دانلود و نصب ابزار insert_dylib برای تزریق فریدا به باینری
-          git clone https://github.com/Tyilo/insert_dylib
-          cd insert_dylib
-          xcodebuild clean build
-          sudo cp build/Release/insert_dylib /usr/local/bin/
-
-      - name: Generate Xcode Project
-        run: xcodegen generate
-
-      - name: Build Application
-        run: |
-          xcodebuild clean build \
-            -project HelloWorld.xcodeproj \
-            -scheme HelloWorld \
-            -configuration Release \
-            -sdk iphoneos \
-            SYMROOT=$(PWD)/build \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY=""
-
-      - name: Download & Inject Frida Gadget
-        run: |
-          APP_PATH="build/Release-iphoneos/HelloWorld.app"
-          mkdir -p "$APP_PATH/Frameworks"
-          
-          # دانلود نسخه یونیورسال Frida Gadget (مخصوص iOS)
-          # می‌توانید نسخه را به جدیدترین ورژن فریدا که روی سیستم خودتان نصب دارید تغییر دهید
-          FRIDA_VERSION="16.2.1" 
-          curl -L -o frida-gadget.xz "https://github.com/frida/frida/releases/download/${FRIDA_VERSION}/frida-gadget-${FRIDA_VERSION}-ios-universal.dylib.xz"
-          
-          # استخراج فایل از حالت فشرده
-          xz -d frida-gadget.xz
-          mv frida-gadget "$APP_PATH/Frameworks/FridaGadget.dylib"
-          
-          # تزریق کتابخانه به داخل باینری اصلی
-          insert_dylib @executable_path/Frameworks/FridaGadget.dylib "$APP_PATH/HelloWorld" --all-yes --inplace
-
-      - name: Package IPA (Unsigned)
-        run: |
+          brew install xcodegen ldid
+          # ایجاد پروژه
+          cat <<EOF > project.yml
+          name: VulnApp
+          targets:
+            VulnApp:
+              type: application
+              platform: iOS
+              deploymentTarget: "14.0"
+              sources: [App.swift]
+          EOF
+          xcodegen
+          # بیلد کردن
+          xcodebuild build -scheme VulnApp -sdk iphoneos -configuration Release SYMROOT=$(PWD)/build CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
+          # ساخت پکیج
           mkdir -p build/Payload
-          mv build/Release-iphoneos/HelloWorld.app build/Payload/
-          cd build
-          zip -qr HelloWorld-Frida.ipa Payload
-
-      - name: Upload IPA
-        uses: actions/upload-artifact@v4
+          mv build/Release-iphoneos/VulnApp.app build/Payload/
+          ldid -S build/Payload/VulnApp.app/VulnApp
+          cd build && zip -qr VulnApp.ipa Payload
+      - uses: actions/upload-artifact@v4
         with:
-          name: HelloWorld-Frida-Injected
-          path: build/HelloWorld-Frida.ipa
+          name: VulnApp-IPA
+          path: build/VulnApp.ipa
