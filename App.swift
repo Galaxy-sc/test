@@ -1,19 +1,32 @@
 import SwiftUI
 
 @main
-struct HelloWorldApp: App {
+struct VulnApp: App {
     var body: some Scene {
         WindowGroup {
-            VStack {
-                Text("Hello World!")
-                    .font(.largeTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.blue)
-                
-                Text("تست موفقیت‌آمیز روی آیفون ۷")
-                    .font(.headline)
-                    .padding(.top, 10)
+            ContentView()
+        }
+    }
+}
+
+struct ContentView: View {
+    @State var status = "منتظر ورود..."
+    
+    var body: some View {
+        VStack {
+            Text(status).padding()
+            Button("تست ورود") {
+                if checkPassword("wrong_pass") {
+                    status = "دسترسی باز شد! (آسیب‌پذیر)"
+                } else {
+                    status = "دسترسی رد شد!"
+                }
             }
         }
+    }
+    
+    // این همان تابعی است که می‌خواهیم با فریدا دور بزنیم
+    func checkPassword(_ pass: String) -> Bool {
+        return pass == "1234"
     }
 }
