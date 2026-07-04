@@ -13,7 +13,8 @@ jobs:
       - name: Build
         run: |
           brew install xcodegen ldid
-          # ایجاد پروژه
+          
+          # 1. افزودن مسیر Info.plist به کانفیگ پروژه (بسیار مهم)
           cat <<EOF > project.yml
           name: VulnApp
           targets:
@@ -22,15 +23,37 @@ jobs:
               platform: iOS
               deploymentTarget: "14.0"
               sources: [App.swift]
+              info:
+                path: Info.plist
+              settings:
+                CODE_SIGNING_ALLOWED: NO
+                CODE_SIGNING_REQUIRED: NO
+                CODE_SIGN_IDENTITY: ""
           EOF
+          
           xcodegen
-          # بیلد کردن
-          xcodebuild build -scheme VulnApp -sdk iphoneos -configuration Release SYMROOT=$(PWD)/build CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=""
-          # ساخت پکیج
+          
+          # 2. اضافه کردن پرچم‌های لازم برای بیلد بدون ساین در iOS
+          xcodebuild build \
+            -project VulnApp.xcodeproj \
+            -scheme VulnApp \
+            -sdk iphoneos \
+            -configuration Release \
+            SYMROOT=$(PWD)/build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            VALIDATE_WORKSPACE=NO
+            
+          # 3. ساختار صحیح پوشه Payload
           mkdir -p build/Payload
-          mv build/Release-iphoneos/VulnApp.app build/Payload/
+          cp -R build/Release-iphoneos/VulnApp.app build/Payload/
+          
+          # اعمال امضای جعلی (Pseudo-sign) با ldid
           ldid -S build/Payload/VulnApp.app/VulnApp
+          
           cd build && zip -qr VulnApp.ipa Payload
+          
       - uses: actions/upload-artifact@v4
         with:
           name: VulnApp-IPA
