@@ -1,0 +1,53 @@
+name: Build Jailbreak IPA
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Tools (XcodeGen & ldid)
+        run: |
+          brew install xcodegen
+          brew install ldid
+
+      - name: Generate Xcode Project
+        run: xcodegen generate
+
+      - name: Build Application
+        run: |
+          # کامپایل پروژه و ریختن خروجی در پوشه build
+          xcodebuild clean build \
+            -project HelloWorld.xcodeproj \
+            -scheme HelloWorld \
+            -configuration Release \
+            -sdk iphoneos \
+            SYMROOT=$(PWD)/build \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""
+
+      - name: Pseudo-Sign & Package IPA
+        run: |
+          mkdir -p build/Payload
+          # انتقال فایل برنامه به پوشه استاندارد Payload
+          mv build/Release-iphoneos/HelloWorld.app build/Payload/
+          
+          # اعمال امضای جعلی مخصوص دیوایس‌های جیلبریک شده با ldid
+          ldid -S build/Payload/HelloWorld.app/HelloWorld
+          
+          # فشرده‌سازی به صورت فایل IPA
+          cd build
+          zip -qr HelloWorld.ipa Payload
+
+      - name: Upload IPA for Download
+        uses: actions/upload-artifact@v4
+        with:
+          name: HelloWorld-Jailbreak
+          path: build/HelloWorld.ipa
