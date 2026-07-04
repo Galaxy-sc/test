@@ -1,6 +1,4 @@
 name: VulnApp
-options:
-  bundleIdPrefix: com.witcher
 targets:
   VulnApp:
     type: application
@@ -10,8 +8,3 @@ targets:
       - App.swift
     info:
       path: Info.plist
-    settings:
-      CODE_SIGNING_ALLOWED: NO
-      CODE_SIGNING_REQUIRED: NO
-      CODE_SIGN_IDENTITY: ""
-      TARGETED_DEVICE_FAMILY: "1"
