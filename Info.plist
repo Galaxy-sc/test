@@ -8,10 +8,30 @@
     <string>com.witcher.VulnApp</string>
     <key>CFBundleName</key>
     <string>VulnApp</string>
+    <key>CFBundleDisplayName</key>
+    <string>VulnApp</string>
     <key>CFBundleShortVersionString</key>
     <string>1.0</string>
     <key>CFBundleVersion</key>
     <string>1</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleSupportedPlatforms</key>
+    <array>
+        <string>iPhoneOS</string>
+    </array>
+    <key>MinimumOSVersion</key>
+    <string>14.0</string>
+    <key>UIDeviceFamily</key>
+    <array>
+        <integer>1</integer>
+    </array>
+    <key>UIRequiredDeviceCapabilities</key>
+    <array>
+        <string>arm64</string>
+    </array>
+    <key>UILaunchScreen</key>
+    <dict/>
     <key>LSRequiresIPhoneOS</key>
     <true/>
 </dict>
