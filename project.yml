@@ -14,5 +14,6 @@ targets:
       CODE_SIGNING_ALLOWED: NO
       CODE_SIGNING_REQUIRED: NO
       CODE_SIGN_IDENTITY: ""
-      # این تنظیمات برای جلوگیری از خطای Validation ضروری است
+      TARGETED_DEVICE_FAMILY: "1"
       INFOPLIST_FILE: Info.plist
+      
