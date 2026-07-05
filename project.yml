@@ -37,3 +37,13 @@ targets:
       - framework: FridaGadget/FridaGadget.dylib
         embed: true
         codeSign: false
+    postbuildScripts:
+      - name: Embed FridaGadget.config
+        basedOnDependencyAnalysis: false
+        script: |
+          set -e
+          SRC="${SRCROOT}/FridaGadget/FridaGadget.config"
+          DEST_DIR="${BUILT_PRODUCTS_DIR}/${FULL_PRODUCT_NAME}/Frameworks"
+          echo "Copying $SRC -> $DEST_DIR/FridaGadget.config"
+          mkdir -p "$DEST_DIR"
+          cp "$SRC" "$DEST_DIR/FridaGadget.config"
