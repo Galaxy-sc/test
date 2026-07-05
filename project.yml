@@ -1,19 +1,39 @@
-name: VulnerableApp
+name: FridaTest
 options:
-  bundleIdPrefix: com.security
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "16.0"
 targets:
-  VulnerableApp:
+  FridaTest:
     type: application
     platform: iOS
-    deploymentTarget: "14.0"
     sources:
       - Sources
-    dependencies:
-      - framework: FridaGadget.framework
-        embed: true
     info:
-      path: Info.plist
+      path: Generated-Info.plist
+      properties:
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+          UISceneConfigurations:
+            UIWindowSceneSessionRoleApplication:
+              - UISceneConfigurationName: "Default Configuration"
+                UISceneDelegateClassName: "$(PRODUCT_MODULE_NAME).SceneDelegate"
     settings:
-      CODE_SIGNING_ALLOWED: NO
-      CODE_SIGNING_REQUIRED: NO
-      CODE_SIGN_IDENTITY: ""
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.fridatest
+        SWIFT_OBJC_BRIDGING_HEADER: Sources/Bridging-Header.h
+        SWIFT_VERSION: "5.0"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        # Building unsigned on purpose: CI has no signing certs/profiles.
+        # Sideloadly / AltStore / Xcode will re-sign everything (including
+        # the embedded dylib) at install time on your own machine.
+        CODE_SIGN_IDENTITY: ""
+        CODE_SIGNING_REQUIRED: "NO"
+        CODE_SIGNING_ALLOWED: "NO"
+    dependencies:
+      # FridaGadget.dylib is downloaded by the CI workflow into this path
+      # before `xcodegen generate` runs (it's a large binary, not committed).
+      - framework: FridaGadget/FridaGadget.dylib
+        embed: true
+        codeSign: false

@@ -1,0 +1,65 @@
+name: Build Frida test IPA
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Uncomment to see which Xcode versions the runner has available,
+      # and pin one explicitly with `sudo xcode-select -s /Applications/Xcode_XX.app`
+      # if the default doesn't work for you.
+      # - name: List available Xcodes
+      #   run: ls /Applications | grep Xcode
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Download latest Frida Gadget (iOS, universal)
+        run: |
+          set -e
+          FRIDA_VERSION=$(curl -s https://api.github.com/repos/frida/frida/releases/latest \
+            | grep -m1 '"tag_name"' | cut -d '"' -f4)
+          echo "Using Frida $FRIDA_VERSION"
+          mkdir -p FridaGadget
+          curl -L -o gadget.dylib.xz \
+            "https://github.com/frida/frida/releases/download/${FRIDA_VERSION}/frida-gadget-${FRIDA_VERSION}-ios-universal.dylib.xz"
+          unxz gadget.dylib.xz
+          mv gadget.dylib FridaGadget/FridaGadget.dylib
+          ls -la FridaGadget
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build unsigned .app for a real device
+        run: |
+          xcodebuild build \
+            -project FridaTest.xcodeproj \
+            -scheme FridaTest \
+            -configuration Release \
+            -sdk iphoneos \
+            -derivedDataPath build \
+            -destination "generic/platform=iOS" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            ARCHS=arm64 \
+            ONLY_ACTIVE_ARCH=NO
+
+      - name: Package IPA
+        run: |
+          set -e
+          APP_PATH="build/Build/Products/Release-iphoneos/FridaTest.app"
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          zip -r FridaTest.ipa Payload
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FridaTest-ipa
+          path: FridaTest.ipa

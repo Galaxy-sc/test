@@ -1,0 +1,8 @@
+FridaTest.xcodeproj/
+Generated-Info.plist
+build/
+Payload/
+*.ipa
+FridaGadget/FridaGadget.dylib
+gadget.dylib.xz
+.DS_Store
