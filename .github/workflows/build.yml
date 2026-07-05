@@ -1,61 +1,49 @@
-name: Build Vuln Lab IPA
+name: Build Vulnerable iOS App
 
 on:
   push:
     branches: [ "main" ]
-  workflow_dispatch:
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
+    name: Build and Package IPA
     runs-on: macos-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Build
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Build Unsigned App
+        # کامند زیر اپلیکیشن را بدون نیاز به Certificate و Provisioning Profile بیلد می‌کند
         run: |
-          brew install xcodegen ldid
-
-          # 1. افزودن مسیر Info.plist به کانفیگ پروژه (بسیار مهم)
-          cat <<EOF > project.yml
-          name: VulnApp
-          targets:
-            VulnApp:
-              type: application
-              platform: iOS
-              deploymentTarget: "14.0"
-              sources: [App.swift]
-              info:
-                path: Info.plist
-              settings:
-                CODE_SIGNING_ALLOWED: NO
-                CODE_SIGNING_REQUIRED: NO
-                CODE_SIGN_IDENTITY: ""
-                TARGETED_DEVICE_FAMILY: "1"
-          EOF
-
-          xcodegen
-
-          # 2. اضافه کردن پرچم‌های لازم برای بیلد بدون ساین در iOS
-          xcodebuild build \
-            -project VulnApp.xcodeproj \
-            -scheme VulnApp \
+          xcodebuild clean build \
+            -project VulnerableApp.xcodeproj \
+            -scheme VulnerableApp \
             -sdk iphoneos \
             -configuration Release \
-            SYMROOT=$(PWD)/build \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
-            VALIDATE_WORKSPACE=NO
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_ENTITLEMENTS="" \
+            CODE_SIGNING_ALLOWED=NO \
+            SYMROOT=$PWD/build
 
-          # 3. ساختار صحیح پوشه Payload
-          mkdir -p build/Payload
-          cp -R build/Release-iphoneos/VulnApp.app build/Payload/
-
-          # اعمال امضای جعلی (Pseudo-sign) با ldid
-          ldid -S build/Payload/VulnApp.app/VulnApp
-
-          cd build && zip -qr VulnApp.ipa Payload
-
-      - uses: actions/upload-artifact@v4
+      - name: Package into IPA
+        # ساخت پوشه Payload و تبدیل فایل .app به .ipa
+        run: |
+          mkdir -p Payload
+          # مسیر زیر ممکن است بر اساس نام پروژه شما کمی متفاوت باشد
+          cp -r build/Release-iphoneos/VulnerableApp.app Payload/
+          zip -r VulnerableApp.ipa Payload
+          
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: VulnApp-IPA
-          path: build/VulnApp.ipa
+          name: VulnerableApp-IPA
+          path: VulnerableApp.ipa
