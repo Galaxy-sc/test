@@ -11,7 +11,6 @@ targets:
     dependencies:
       - framework: FridaGadget.framework
         embed: true
-        link: false   # 🌟 این خط طلایی جلوی کرش dyld را می‌گیرد
     info:
       path: Info.plist
     settings:
