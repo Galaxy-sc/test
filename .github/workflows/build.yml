@@ -17,14 +17,9 @@ jobs:
 
       - name: Download and Extract Frida Gadget
         run: |
-          # دانلود نسخه iOS Universal
           curl -L -o frida-gadget.dylib.xz https://github.com/frida/frida/releases/download/17.15.3/frida-gadget-17.15.3-ios-universal.dylib.xz
-          
-          # استخراج فایل از حالت فشرده xz
           xz -d frida-gadget.dylib.xz
-          
-          # تغییر نام و انتقال به پوشه Sources تا Xcode آن را داخل اپلیکیشن قرار دهد
-          mv frida-gadget.dylib Sources/FridaGadget.dylib
+          # فایل dylib در مسیر اصلی پروژه می‌ماند
 
       - name: Install XcodeGen
         run: brew install xcodegen
