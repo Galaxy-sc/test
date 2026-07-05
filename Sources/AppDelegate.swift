@@ -1,5 +1,5 @@
 import UIKit
-import Darwin // اضافه شدن برای دسترسی به توابع C مثل dlopen
+import Darwin
 
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -8,18 +8,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         
-        // --- بارگذاری خودکار Frida Gadget ---
-        if let gadgetPath = Bundle.main.path(forResource: "FridaGadget", ofType: "dylib") {
+        // --- پیدا کردن و لود کردن فریدا از پوشه Frameworks ---
+        if let frameworksPath = Bundle.main.privateFrameworksPath {
+            let gadgetPath = frameworksPath + "/FridaGadget.dylib"
             let handle = dlopen(gadgetPath, RTLD_NOW)
+            
             if handle != nil {
-                print("[+] Frida Gadget Loaded Successfully at Runtime!")
+                print("[+] Frida Gadget Loaded Successfully from Frameworks!")
             } else {
-                print("[-] Failed to load Frida Gadget.")
+                print("[-] Failed to load Frida Gadget. AMFI blocked it or path is wrong.")
             }
-        } else {
-            print("[-] FridaGadget.dylib not found in bundle.")
         }
-        // -------------------------------------
+        // -----------------------------------------------------
 
         window = UIWindow(frame: UIScreen.main.bounds)
         window?.backgroundColor = .white
