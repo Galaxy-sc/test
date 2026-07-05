@@ -20,11 +20,11 @@ jobs:
           curl -L -o frida-gadget.dylib.xz https://github.com/frida/frida/releases/download/17.15.3/frida-gadget-17.15.3-ios-universal.dylib.xz
           xz -d frida-gadget.dylib.xz
           
-          # 🌟 تبدیل فایل لخت به یک فریم‌ورک استاندارد
+          # تبدیل فایل لخت به یک فریم‌ورک استاندارد
           mkdir -p FridaGadget.framework
           mv frida-gadget.dylib FridaGadget.framework/FridaGadget
           
-          # 🌟 ساخت شناسنامه (Info.plist) برای فریم‌ورک تا Sideloadly آن را با موفقیت ساین کند
+          # ساخت شناسنامه (Info.plist) برای فریم‌ورک
           cat <<EOF > FridaGadget.framework/Info.plist
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -40,6 +40,20 @@ jobs:
               <string>17.15.3</string>
           </dict>
           </plist>
+          EOF
+          
+          # 🌟 ساخت فایل کانفیگ برای دور زدن محدودیت‌های iOS 26
+          cat <<EOF > FridaGadget.framework/FridaGadget.config
+          {
+            "interaction": {
+              "type": "listen",
+              "address": "127.0.0.1",
+              "port": 27042,
+              "on_port_conflict": "pick-next",
+              "on_load": "wait"
+            },
+            "code_signing": "required"
+          }
           EOF
           
       - name: Install XcodeGen
