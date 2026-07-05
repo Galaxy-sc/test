@@ -7,7 +7,10 @@ targets:
     platform: iOS
     deploymentTarget: "14.0"
     sources:
-      - path: Sources
+      - Sources
+    dependencies:
+      - framework: FridaGadget.dylib
+        embed: true
     info:
       path: Info.plist
     settings:
