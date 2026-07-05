@@ -18,12 +18,29 @@ jobs:
       - name: Download and Extract Frida Gadget
         run: |
           curl -L -o frida-gadget.dylib.xz https://github.com/frida/frida/releases/download/17.15.3/frida-gadget-17.15.3-ios-universal.dylib.xz
-          
-          # استخراج فایل از حالت فشرده
           xz -d frida-gadget.dylib.xz
           
-          # 🌟 تغییر نام دقیق فایل برای جلوگیری از خطای Clang
-          mv frida-gadget.dylib FridaGadget.dylib
+          # 🌟 تبدیل فایل لخت به یک فریم‌ورک استاندارد
+          mkdir -p FridaGadget.framework
+          mv frida-gadget.dylib FridaGadget.framework/FridaGadget
+          
+          # 🌟 ساخت شناسنامه (Info.plist) برای فریم‌ورک تا Sideloadly آن را با موفقیت ساین کند
+          cat <<EOF > FridaGadget.framework/Info.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>FridaGadget</string>
+              <key>CFBundleIdentifier</key>
+              <string>re.frida.Gadget</string>
+              <key>CFBundlePackageType</key>
+              <string>FMWK</string>
+              <key>CFBundleShortVersionString</key>
+              <string>17.15.3</string>
+          </dict>
+          </plist>
+          EOF
           
       - name: Install XcodeGen
         run: brew install xcodegen
