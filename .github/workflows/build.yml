@@ -15,13 +15,13 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Set up Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
+        run: xcodegen generate
 
       - name: Build Unsigned App
-        # کامند زیر اپلیکیشن را بدون نیاز به Certificate و Provisioning Profile بیلد می‌کند
         run: |
           xcodebuild clean build \
             -project VulnerableApp.xcodeproj \
@@ -35,10 +35,8 @@ jobs:
             SYMROOT=$PWD/build
 
       - name: Package into IPA
-        # ساخت پوشه Payload و تبدیل فایل .app به .ipa
         run: |
           mkdir -p Payload
-          # مسیر زیر ممکن است بر اساس نام پروژه شما کمی متفاوت باشد
           cp -r build/Release-iphoneos/VulnerableApp.app Payload/
           zip -r VulnerableApp.ipa Payload
           
