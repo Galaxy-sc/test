@@ -9,7 +9,7 @@ targets:
     sources:
       - Sources
     dependencies:
-      - framework: FridaGadget.dylib
+      - framework: FridaGadget.framework
         embed: true
     info:
       path: Info.plist
