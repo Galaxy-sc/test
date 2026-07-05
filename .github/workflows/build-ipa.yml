@@ -2,6 +2,11 @@ name: Build Frida test IPA
 
 on:
   workflow_dispatch:
+    inputs:
+      frida_version:
+        description: "Frida version to embed (tag name from github.com/frida/frida/releases)"
+        required: false
+        default: "17.15.3"
 
 jobs:
   build:
@@ -20,15 +25,26 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
-      - name: Download latest Frida Gadget (iOS, universal)
+      - name: Download Frida Gadget (iOS, universal)
+        env:
+          FRIDA_VERSION: ${{ github.event.inputs.frida_version || '17.15.3' }}
         run: |
           set -e
-          FRIDA_VERSION=$(curl -s https://api.github.com/repos/frida/frida/releases/latest \
-            | grep -m1 '"tag_name"' | cut -d '"' -f4)
           echo "Using Frida $FRIDA_VERSION"
+          URL="https://github.com/frida/frida/releases/download/${FRIDA_VERSION}/frida-gadget-${FRIDA_VERSION}-ios-universal.dylib.xz"
+          echo "Downloading $URL"
           mkdir -p FridaGadget
-          curl -L -o gadget.dylib.xz \
-            "https://github.com/frida/frida/releases/download/${FRIDA_VERSION}/frida-gadget-${FRIDA_VERSION}-ios-universal.dylib.xz"
+          curl -fL -o gadget.dylib.xz "$URL"
+
+          # Fail loudly (instead of a confusing unxz error) if GitHub gave us
+          # an HTML/JSON error page instead of the actual archive.
+          if ! file gadget.dylib.xz | grep -q "XZ compressed data"; then
+            echo "::error::Download did not return a valid .xz file. Check that ${FRIDA_VERSION} exists at $URL"
+            file gadget.dylib.xz
+            cat gadget.dylib.xz
+            exit 1
+          fi
+
           unxz gadget.dylib.xz
           mv gadget.dylib FridaGadget/FridaGadget.dylib
           ls -la FridaGadget
